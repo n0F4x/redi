@@ -69,8 +69,7 @@ struct RenderSystem::Builder
 
     static auto build(
         GraphicsSystemIntegration&                  graphics_system_integration,
-        const redi::util::OptionalRef<WindowSystem> window_system,
-        RenderSystem&
+        const redi::util::OptionalRef<WindowSystem> window_system
     ) -> RenderSystem
     {
         return RenderSystem{
