@@ -1,0 +1,11 @@
+{
+    "version": "0.5",
+    "requires": [
+        "catch2/3.15.0#dad1ca2786e3f2c80129053a4ddc094f%1779369722.174"
+    ],
+    "build_requires": [
+        "cmake/4.3#platform"
+    ],
+    "python_requires": [],
+    "config_requires": []
+}
