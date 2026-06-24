@@ -7,6 +7,7 @@ target_sources(${PROJECT_NAME} PUBLIC
         function.ixx
         function_pointer.ixx
         function_reference.ixx
+        invocable_n_r.ixx
         member_function_pointer.ixx
         nothrow_assignable_from.ixx
         nothrow_constructible_from.ixx

@@ -4,6 +4,7 @@ export import redi.util.concepts.decayed;
 export import redi.util.concepts.function;
 export import redi.util.concepts.function_pointer;
 export import redi.util.concepts.function_reference;
+export import redi.util.concepts.invocable_n_r;
 export import redi.util.concepts.member_function_pointer;
 export import redi.util.concepts.nothrow_assignable_from;
 export import redi.util.concepts.nothrow_constructible_from;

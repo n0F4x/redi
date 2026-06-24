@@ -19,6 +19,17 @@
 
 #define REDI_TEMP_CONST_REF REDI_TEMP_CONST REDI_TEMP_REF
 
+namespace internal {
+
+template <typename T, typename Result_T, typename... Args_T>
+constexpr bool callable_with_qualifiers_v<
+    T,
+    auto(Args_T...) REDI_TEMP_CONST_REF noexcept(REDI_TEMP_IS_NOEXCEPT)->Result_T>
+    = invocable_n_r_c<T REDI_TEMP_INVOKE_QUALS, REDI_TEMP_IS_NOEXCEPT, Result_T, Args_T...>
+   && invocable_n_r_c<T REDI_TEMP_CONST_REF, REDI_TEMP_IS_NOEXCEPT, Result_T, Args_T...>;
+
+}   // namespace internal
+
 namespace REDI_TEMP_NAMESPACE {
 
 template <std::size_t size_T, std::size_t alignment_T, typename Result_T, typename... Args_T>
@@ -72,17 +83,6 @@ private:
 
     std::reference_wrapper<InvokeFunc> m_invoke;
 };
-
-template <typename T, typename Result_T, typename... Args_T>
-constexpr static bool callable_with_noexcept_v = std::conditional_t<
-    REDI_TEMP_IS_NOEXCEPT,
-    std::is_nothrow_invocable_r<Result_T, T, Args_T...>,
-    std::is_invocable_r<Result_T, T, Args_T...>>::value;
-
-template <typename T, typename Result_T, typename... Args_T>
-constexpr static bool callable_with_qualifiers_v
-    = callable_with_noexcept_v<T REDI_TEMP_INVOKE_QUALS, Result_T, Args_T...>
-   && callable_with_noexcept_v<T REDI_TEMP_CONST_REF, Result_T, Args_T...>;
 
 }   // namespace REDI_TEMP_NAMESPACE
 
@@ -567,12 +567,6 @@ constexpr auto Function<
 {
     m_erase_mechanism.reset(m_allocator, m_storage);
 }
-
-template <typename T, typename Result_T, typename... Args_T>
-constexpr bool internal::callable_with_qualifiers_v<
-    T,
-    auto(Args_T...) REDI_TEMP_CONST_REF noexcept(REDI_TEMP_IS_NOEXCEPT)->Result_T>
-    = REDI_TEMP_NAMESPACE::callable_with_qualifiers_v<T, Result_T, Args_T...>;
 
 #undef REDI_TEMP_NAMESPACE
 #undef REDI_TEMP_CONST

@@ -14,6 +14,7 @@ export module redi.util.containers.Function;
 
 import redi.util.concepts.decayed;
 import redi.util.concepts.function;
+import redi.util.concepts.invocable_n_r;
 import redi.util.concepts.specialization_of;
 import redi.util.concepts.storable;
 import redi.util.concepts.strips_to;
