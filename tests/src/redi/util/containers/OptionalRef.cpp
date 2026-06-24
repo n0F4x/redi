@@ -7,7 +7,7 @@ import redi.util.containers.OptionalRef;
 
 namespace redi::util {
 
-TEST_CASE("util::OptionalRef")
+TEST_CASE("redi::util::OptionalRef")
 {
     SECTION("transform")
     {

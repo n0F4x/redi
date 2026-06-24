@@ -33,7 +33,7 @@ private:
 
 }   // namespace
 
-TEST_CASE("util::Any")
+TEST_CASE("redi::util::Any")
 {
     class Value {
     public:
