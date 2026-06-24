@@ -2,13 +2,15 @@ module;
 
 #include <concepts>
 #include <format>
-#if __has_cpp_attribute(__cpp_lib_debugging)
-  #include <debugging>
-#endif
 #include <source_location>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <version>
+
+#ifdef __cpp_lib_debugging
+  #include <debugging>
+#endif
 
 export module redi.util.contracts;
 
@@ -66,7 +68,7 @@ constexpr auto propagate_precondition_violation(
 
     precondition_violation.print();
 
-#if __has_cpp_attribute(__cpp_lib_debugging)
+#ifdef __cpp_lib_debugging
     std::breakpoint();
 #else
   #ifdef _MSC_VER
