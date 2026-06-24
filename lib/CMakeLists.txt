@@ -11,7 +11,7 @@ add_library(${PROJECT_NAME})
 add_library(redi::redi ALIAS ${PROJECT_NAME})
 
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_26)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
         ${project_prefix}VERSION_MAJOR=${PROJECT_VERSION_MAJOR}

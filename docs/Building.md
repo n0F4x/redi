@@ -21,7 +21,7 @@ os=Windows
 arch=x86_64
 build_type=Debug
 compiler=clang
-compiler.cppstd=26
+compiler.cppstd=23
 compiler.version=22
 compiler.runtime=dynamic
 compiler.runtime_type=Debug
@@ -53,7 +53,7 @@ os.subsystem=msys2
 arch=x86_64
 build_type=Debug
 compiler=clang
-compiler.cppstd=26
+compiler.cppstd=23
 compiler.version=22
 compiler.libcxx=libc++
 
