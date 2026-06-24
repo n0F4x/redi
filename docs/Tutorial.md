@@ -27,7 +27,7 @@ registry.emplace<Entry>();
 
 ### Describing dependencies
 
-Entries must make it obvious what other entries they depend on, so that the library can determine the dependencies it needs to pull in when constructing them.
+Entries must make it obvious which other entries they depend on, so that the library can determine the dependencies it needs to pull in when constructing them.
 
 ```c++
 struct Entry;
@@ -45,7 +45,7 @@ auto describe_build(redi::BuildDirector<Entry>& director) -> void
 ```
 
 One might think that this looks like too much boilerplate.
-However, the library chooses to enforce dependency descriptions in a way that the resulting template instantiations may end up in one source file per declaration while also giving the highest degree of freedom to the user.
+However, the library chooses to enforce dependency descriptions this way, so that the resulting template instantiations may end up in one source file per declaration while also giving the highest degree of freedom to the user.
 This dramatically increases compilation speed when used with deep dependency hierachies.
 
 ### Entry builders
@@ -100,14 +100,14 @@ auto describe_build(redi::BuildDirector<EntryBuilder>& director) -> void
 ```
 
 Notice how `make_entry_builder` takes a mutable reference to `OtherEntryBuilder`.
-This is the way how builders are supposed to configure other builders.
+This is the way builders are supposed to configure other builders.
 
 `build` methods on the other hand must take other builders by `const&`.
 This is to discourage `build` methods relying on other builders, as this pattern can easily disrupt the build order by creating cyclic dependencies when used incorrectly.
 
 ### Configuration entries
 
-Configuration entries are special in the sense that they deliberately advertise the fact that they don't depend on any other entry.
+Configuration entries are special as they explicitly declare that they do not depend on any other entry.
 This makes it ideal not only for other entries, but also builders to depend on them.
 
 ```c++
@@ -177,12 +177,12 @@ Automatically registering strict dependencies is trivial.
 However, when it comes to optional dependencies, the library doesn't know ahead of time whether they are going to be present or not.
 
 The best assumption to make is that the entry would want to be notified when an optional dependency is present, even if it got registered at a later point.
-Therefore, the registry builder reorders the builders and the entries, so that optional dependencies are respected, just like regular dependencies.
+Therefore, the registry builder reorders the builder and entry creation calls so that optional dependencies are respected, just like regular dependencies.
 
 ## Pointer stability
 
 Pointers/references to builders and entries can be stored safely.
-The builders/entries themselves are not moved until the registry (or registry builder - in the case of builders) is destroyed.
+The builders/entries themselves are not relocated until the registry (or registry builder - in the case of builders) is destroyed.
 Be cautious, however, that some builders might not be safe to use after their `build` methods have been called.
 
 Entries are destroyed in reverse build order.
