@@ -40,16 +40,14 @@ private:
     std::string          m_message;
 
     [[nodiscard]]
-    constexpr static auto headline() -> std::string_view
+    constexpr static auto headline() noexcept -> std::string_view
     {
-        constexpr static std::string_view result{ "Precondition violated!" };
-        return result;
+        return "Precondition violated!";
     }
 };
 
-export template <typename Exception_T = PreconditionViolation>
-    requires std::same_as<Exception_T, PreconditionViolation>
-          || std::derived_from<Exception_T, PreconditionViolation>
+export template <
+    std::derived_from<PreconditionViolation> Exception_T = PreconditionViolation>
 constexpr auto propagate_precondition_violation(
     const std::string_view      condition_as_string,
     const std::source_location& location,

@@ -9,18 +9,14 @@ import redi.util.containers.OptionalRef;
 
 namespace redi {
 
-template <typename>
-struct StripDependency;
-
-template <util::specialization_of_c<util::OptionalRef> T>
-struct StripDependency<T> {
-    using type = std::remove_cvref_t<typename T::ValueType>;
+template <typename T>
+struct StripDependency {
+    using type = std::remove_cvref_t<T>;
 };
 
 template <typename T>
-    requires(!util::specialization_of_c<T, util::OptionalRef>)
-struct StripDependency<T> {
-    using type = std::remove_cvref_t<T>;
+struct StripDependency<util::OptionalRef<T>> {
+    using type = std::remove_const_t<T>;
 };
 
 export template <typename T>
