@@ -7,7 +7,6 @@ export module redi.represents_entry_dependency_c;
 
 import redi.entry_c;
 import redi.EntryBuilderBase;
-import redi.util.concepts.specialization_of;
 import redi.util.containers.OptionalRef;
 
 namespace redi {
@@ -18,9 +17,9 @@ concept represents_entry_dependency_c
        && (entry_c<std::remove_cvref_t<T>>
            || (std::derived_from<std::remove_cvref_t<T>, EntryBuilderBase>
                && std::is_const_v<std::remove_reference_t<T>>)))
-   || (util::specialization_of_c<T, util::OptionalRef>
-       && (entry_c<std::remove_cvref_t<typename T::ValueType>>
-           || (std::derived_from<std::remove_cvref_t<typename T::ValueType>, EntryBuilderBase>
-               && std::is_const_v<std::remove_reference_t<typename T::ValueType>>)));
+   || (util::optional_ref_c<T>
+       && (entry_c<std::remove_const_t<typename T::value_type>>
+           || (std::derived_from<std::remove_const_t<typename T::value_type>, EntryBuilderBase>
+               && std::is_const_v<typename T::value_type>)));
 
 }   // namespace redi

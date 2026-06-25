@@ -1,4 +1,3 @@
-#include <expected>
 #include <optional>
 
 #include <catch2/catch_test_macros.hpp>
@@ -12,36 +11,34 @@ TEST_CASE("redi::util::OptionalRef")
     SECTION("transform")
     {
         {
-            constexpr OptionalRef<int> optional_ref{};
+            constexpr OptionalRef<int> optional{};
             [[maybe_unused]]
-            constexpr auto optional{
-                optional_ref.transform([](int&) -> float { return {}; })
-            };
+            constexpr auto result{ optional.transform([](int&) -> float { return {}; }) };
 
-            STATIC_REQUIRE(std::is_same_v<decltype(optional), const std::optional<float>>);
+            STATIC_REQUIRE(std::is_same_v<decltype(result), const std::optional<float>>);
         }
 
         SECTION("with value")
         {
             constexpr static int   value{ 2 };
-            constexpr OptionalRef  optional_ref{ value };
+            constexpr OptionalRef  optional{ value };
             constexpr static float other_value{ 3.2f };
-            constexpr auto         optional{
-                optional_ref.transform([](const int&) -> float { return other_value; })
+            constexpr auto         result{
+                optional.transform([](const int&) -> float { return other_value; })
             };
 
-            STATIC_REQUIRE(optional.value() == other_value);
+            STATIC_REQUIRE(result.value() == other_value);
         }
 
         SECTION("without value")
         {
-            constexpr OptionalRef<int> optional_ref{};
+            constexpr OptionalRef<int> optional{};
             constexpr static float     other_value{ 3.2f };
-            constexpr auto             optional{
-                optional_ref.transform([](int&) -> float { return other_value; })
+            constexpr auto             result{
+                optional.transform([](int&) -> float { return other_value; })
             };
 
-            STATIC_REQUIRE(!optional.has_value());
+            STATIC_REQUIRE(!result.has_value());
         }
     }
 
@@ -50,33 +47,32 @@ TEST_CASE("redi::util::OptionalRef")
         {
             constexpr OptionalRef<int> optional{};
             [[maybe_unused]]
-            auto expected{
-                optional.or_else([] -> std::expected<int, float> { return {}; })
-            };
+            auto result{ optional.or_else([] -> OptionalRef<int> { return {}; }) };
 
-            STATIC_REQUIRE(std::is_same_v<decltype(expected), std::expected<int, float>>);
+            STATIC_REQUIRE(
+                std::is_same_v<decltype(result), std::remove_const_t<decltype(optional)>>
+            );
         }
 
         SECTION("with value")
         {
             constexpr static int  value{ 2 };
             constexpr OptionalRef optional{ value };
-            constexpr auto        expected{
-                optional.or_else([] -> std::expected<int, float> { return {}; })
+            constexpr auto        result{
+                optional.or_else([] -> OptionalRef<const int> { return {}; })
             };
 
-            STATIC_REQUIRE(expected.value() == value);
+            STATIC_REQUIRE(*result == value);
         }
 
         SECTION("without value")
         {
             constexpr OptionalRef<int> optional{};
-            constexpr static float     error{ 6.7f };
-            constexpr auto             expected{ optional.or_else(
-                [] -> std::expected<int, float> { return std::unexpected{ error }; }
-            ) };
+            constexpr auto             result{
+                optional.or_else([] -> OptionalRef<int> { return std::nullopt; }),
+            };
 
-            STATIC_REQUIRE(expected.error() == error);
+            STATIC_REQUIRE(result.has_value() == false);
         }
     }
 }

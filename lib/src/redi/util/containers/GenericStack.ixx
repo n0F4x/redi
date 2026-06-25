@@ -189,7 +189,13 @@ auto BasicGenericStack<Any_T>::at(this Self_T& self) -> const_like_t<Item_T, Sel
         std::format("Item of type `{}` not found", name_of<Item_T>())
     );
 
+    /*
+     * See compiler bug here: https://github.com/llvm/llvm-project/issues/205644
+     */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreturn-stack-address"
     return *found_item;
+#pragma clang diagnostic pop
 }
 
 template <move_only_any_c Any_T>

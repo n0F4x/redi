@@ -11,7 +11,6 @@ import redi.entry_c;
 import redi.EntryBase;
 import redi.EntryBuilderBase;
 import redi.represents_entry_dependency_c;
-import redi.util.concepts.specialization_of;
 import redi.util.concepts.storable;
 import redi.util.containers.OptionalRef;
 import redi.util.type_traits.result_of;

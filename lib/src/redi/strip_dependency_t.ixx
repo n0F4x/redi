@@ -4,7 +4,6 @@ module;
 
 export module redi.strip_dependency_t;
 
-import redi.util.concepts.specialization_of;
 import redi.util.containers.OptionalRef;
 
 namespace redi {

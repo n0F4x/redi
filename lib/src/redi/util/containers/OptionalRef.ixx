@@ -4,6 +4,7 @@ module;
 #include <memory>
 #include <optional>
 #include <type_traits>
+#include <version>
 
 #include "redi/util/contract_macros.hpp"
 
@@ -11,6 +12,30 @@ export module redi.util.containers.OptionalRef;
 
 import redi.util.contracts;
 
+// clang-format off
+#if __cpp_lib_optional >= 202506L
+// clang-format on
+
+namespace redi::util {
+
+export template <typename T>
+using OptionalRef = std::optional<T&>;
+
+namespace internal {
+
+template <typename T>
+constexpr bool optional_ref_v{ false };
+
+template <typename T>
+constexpr bool optional_ref_v<OptionalRef<T>>{ true };
+
+}   // namespace internal
+
+export template <typename T>
+concept optional_ref_c = internal::optional_ref_v<T>;
+
+}   // namespace redi::util
+#else
 namespace redi::util {
 
 export template <typename T>
@@ -43,7 +68,7 @@ export template <typename T>
     requires(!std::is_reference_v<T>)
 class OptionalRef {
 public:
-    using ValueType = T&;
+    using value_type = T;
 
     OptionalRef() = default;
     constexpr explicit(false) OptionalRef(std::nullopt_t) noexcept;
@@ -82,6 +107,19 @@ public:
 private:
     T* m_handle{};
 };
+
+namespace internal {
+
+template <typename T>
+constexpr bool optional_ref_v{ false };
+
+template <typename T>
+constexpr bool optional_ref_v<OptionalRef<T>>{ true };
+
+}   // namespace internal
+
+export template <typename T>
+concept optional_ref_c = internal::optional_ref_v<T>;
 
 }   // namespace redi::util
 
@@ -215,3 +253,4 @@ constexpr auto OptionalRef<T>::or_else(F&& func) const -> std::invoke_result_t<F
 }
 
 }   // namespace redi::util
+#endif
