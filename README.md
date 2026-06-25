@@ -56,4 +56,4 @@ Read the [tutorial](./docs/Tutorial.md) for an in-depth guide on how to inject d
 The library has no dependencies.
 You can include it as a subdirectory, use `FetchContent`, or use [Conan](https://docs.conan.io/2/index.html).
 
-Read more about the specific Conan workflow [here](../Building.md).
+Read more about the specific Conan workflow [here](./docs/Building.md).
