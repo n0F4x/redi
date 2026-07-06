@@ -38,7 +38,7 @@ class Invoker {
     struct Dispatch {
         constexpr static auto operator()(
             REDI_TEMP_CONST internal::Storage<size_T, alignment_T>& storage,
-            Args_T&&... args
+            Args_T... args
         ) noexcept(REDI_TEMP_IS_NOEXCEPT) -> Result_T
         {
             if constexpr (uses_small_buffer_optimization_c<T, size_T, alignment_T>)
@@ -70,7 +70,7 @@ public:
 
     constexpr auto operator()(
         REDI_TEMP_CONST internal::Storage<size_T, alignment_T>& storage,
-        Args_T&&... args
+        Args_T... args
     ) REDI_TEMP_CONST noexcept(REDI_TEMP_IS_NOEXCEPT) -> Result_T
     {
         return m_invoke(storage, std::forward<Args_T>(args)...);
@@ -78,7 +78,7 @@ public:
 
 private:
     using InvokeFunc
-        = auto(REDI_TEMP_CONST internal::Storage<size_T, alignment_T>&, Args_T&&...)
+        = auto(REDI_TEMP_CONST internal::Storage<size_T, alignment_T>&, Args_T...)
             -> Result_T;
 
     std::reference_wrapper<InvokeFunc> m_invoke;
@@ -164,7 +164,7 @@ public:
     constexpr auto get_allocator() const noexcept -> allocator_type;
 
 
-    constexpr auto operator()(FArgs_T&&... args) REDI_TEMP_CONST_REF noexcept(
+    constexpr auto operator()(FArgs_T... args) REDI_TEMP_CONST_REF noexcept(
         REDI_TEMP_IS_NOEXCEPT
     ) -> Result_T;
 
@@ -524,7 +524,7 @@ constexpr auto Function<
     is_move_only_T,
     size_T,
     alignment_T>::
-    operator()(FArgs_T&&... args) REDI_TEMP_CONST_REF noexcept(REDI_TEMP_IS_NOEXCEPT)
+    operator()(FArgs_T... args) REDI_TEMP_CONST_REF noexcept(REDI_TEMP_IS_NOEXCEPT)
         -> Result_T
 {
     return m_invoke(m_storage, std::forward<FArgs_T>(args)...);
