@@ -34,6 +34,29 @@ struct Entry;
 
 auto describe_build(redi::BuildDirector<Entry>& director) -> void;
 
+struct Entry : redi::BuildableEntry<Entry, describe_build> {
+    explicit Entry(OtherEntry& other_entry);
+};
+
+auto describe_build(redi::BuildDirector<Entry>& director) -> void 
+{
+    director.use_dependencies<OtherEntry&>();   
+}
+```
+
+One might think that this looks like too much boilerplate.
+However, the library chooses to enforce dependency descriptions this way, so that the resulting template instantiations may end up in one source file per declaration while also giving the highest degree of freedom to the user.
+This dramatically increases compilation speed when used with deep dependency hierachies.
+
+#### Building entries using custom functions
+
+Note that the build director also accepts a free function.
+
+```c++
+struct Entry;
+
+auto describe_build(redi::BuildDirector<Entry>& director) -> void;
+
 struct Entry : redi::BuildableEntry<Entry, describe_build> {};
 
 auto make_entry(OtherEntry& other_entry) -> Entry;
@@ -43,10 +66,6 @@ auto describe_build(redi::BuildDirector<Entry>& director) -> void
     director.use_function<make_entry>();   
 }
 ```
-
-One might think that this looks like too much boilerplate.
-However, the library chooses to enforce dependency descriptions this way, so that the resulting template instantiations may end up in one source file per declaration while also giving the highest degree of freedom to the user.
-This dramatically increases compilation speed when used with deep dependency hierachies.
 
 ### Entry builders
 
@@ -88,14 +107,14 @@ struct EntryBuilder;
 auto describe_build(redi::BuildDirector<EntryBuilder>& director) -> void;
 
 struct EntryBuilder : redi::BuildableEntryBuilder<EntryBuilder, describe_build> {
+    explicit EntryBuilder(OtherEntryBuilder& other_entry_builder);
+    
     auto build() -> Entry;
 };
 
-auto make_entry_builder(OtherEntryBuilder& other_entry_builder) -> EntryBuilder;
-
 auto describe_build(redi::BuildDirector<EntryBuilder>& director) -> void 
 {
-    director.use_function<make_entry_builder>();   
+    director.use_dependencies<OtherEntryBuilder&>();   
 }
 ```
 
