@@ -1,11 +1,15 @@
 module;
 
+#include <concepts>
 #include <cstddef>
+#include <memory>
 #include <new>
+#include <utility>
 
 export module redi.util.containers.SmallBuffer;
 
 import redi.util.concepts.decayed;
+import redi.util.memory.construct_at_using_allocator;
 import redi.util.type_traits.const_like;
 
 namespace redi::util {
@@ -24,6 +28,33 @@ public:
 
     auto operator=(const SmallBuffer&) -> SmallBuffer& = default;
     auto operator=(SmallBuffer&&) -> SmallBuffer&      = default;
+
+    template <fits_in_small_buffer_c<size_T, alignment_T> T, typename... Args_T>
+        requires std::constructible_from<T, Args_T&&...>
+    constexpr auto construct(Args_T&&... args) -> T*
+    {
+        return std::construct_at(
+            reinterpret_cast<T*>(m_buffer),
+            std::forward<Args_T>(args)...
+        );
+    }
+
+    template <
+        fits_in_small_buffer_c<size_T, alignment_T> T,
+        typename Allocator_T,
+        typename... Args_T>
+    // ReSharper disable once CppNotAllPathsReturnValue
+    constexpr auto construct_using_allocator(
+        const Allocator_T& allocator,
+        Args_T&&... args
+    ) -> T*
+    {
+        return construct_at_using_allocator(
+            reinterpret_cast<T*>(m_buffer),
+            allocator,
+            std::forward<Args_T>(args)...
+        );
+    }
 
     template <fits_in_small_buffer_c<size_T, alignment_T> T>
     [[nodiscard]]

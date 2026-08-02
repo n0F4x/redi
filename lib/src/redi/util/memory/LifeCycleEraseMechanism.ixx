@@ -9,7 +9,7 @@ module;
 
 #include "redi/util/contract_macros.hpp"
 
-export module redi.util.LifeCycleEraseMechanism;
+export module redi.util.memory.LifeCycleEraseMechanism;
 
 import redi.util.concepts.nothrow_movable;
 import redi.util.containers.SmallBuffer;
@@ -208,13 +208,16 @@ struct Operations {
     {
         if constexpr (uses_small_buffer_optimization_c<T, size_T, alignment_T>)
         {
-            allocator
-                .construct(storage.template launder<T>(), std::forward<Args_T>(args)...);
+            storage.template construct_using_allocator<T>(
+                allocator,
+                std::forward<Args_T>(args)...
+            );
         }
         else
         {
-            *storage.template launder<T*>()
-                = allocator.new_object<T>(std::forward<Args_T>(args)...);
+            storage.template construct<T*>(
+                allocator.new_object<T>(std::forward<Args_T>(args)...)
+            );
         }
     }
 
@@ -243,7 +246,7 @@ struct Operations {
         {
             if (*source_storage.template launder<T*>() == nullptr)
             {
-                *destination_storage.template launder<T*>() = nullptr;
+                destination_storage.template construct<T*>(nullptr);
                 return;
             }
 
@@ -262,15 +265,15 @@ struct Operations {
     {
         if constexpr (uses_small_buffer_optimization_c<T, size_T, alignment_T>)
         {
-            std::construct_at(
-                destination_storage.template launder<T>(),
+            destination_storage.template construct<T>(
                 std::move(*source_storage.template launder<T>())
             );
         }
         else
         {
-            *destination_storage.template launder<T*>()
-                = std::exchange(*source_storage.template launder<T*>(), nullptr);
+            destination_storage.template construct<T*>(
+                std::exchange(*source_storage.template launder<T*>(), nullptr)
+            );
         }
     }
 
@@ -289,8 +292,8 @@ struct Operations {
             }
             else
             {
-                destination_allocator.construct(
-                    destination_storage.template launder<T>(),
+                destination_storage.template construct_using_allocator<T>(
+                    destination_allocator,
                     std::move(*source_storage.template launder<T>())
                 );
             }
@@ -300,15 +303,17 @@ struct Operations {
             if constexpr (is_move_only_T)
             {
                 PRECOND(destination_allocator == source_allocator);
-                *destination_storage.template launder<T*>()
-                    = std::exchange(*source_storage.template launder<T*>(), nullptr);
+                destination_storage.template construct<T*>(
+                    std::exchange(*source_storage.template launder<T*>(), nullptr)
+                );
             }
             else
             {
                 if (destination_allocator == source_allocator)
                 {
-                    *destination_storage.template launder<T*>()
-                        = std::exchange(*source_storage.template launder<T*>(), nullptr);
+                    destination_storage.template construct<T*>(
+                        std::exchange(*source_storage.template launder<T*>(), nullptr)
+                    );
                 }
                 else
                 {
@@ -363,8 +368,8 @@ struct Operations {
                      * Lambdas are not necessarily assignable ;(
                      */
                     std::destroy_at(destination_storage.template launder<T>());
-                    destination_allocator.construct(
-                        destination_storage.template launder<T>(),
+                    destination_storage.template construct_using_allocator<T>(
+                        destination_allocator,
                         *source_storage.template launder<T>()
                     );
                 }
@@ -376,8 +381,10 @@ struct Operations {
                 destination_erase_mechanism
                     .drop(destination_allocator, destination_storage);
 
-                destination_allocator
-                    .construct(destination_storage.template launder<T>(), new_object);
+                destination_storage.template construct_using_allocator<T>(
+                    destination_allocator,
+                    std::move(new_object)
+                );
             }
         }
         else
@@ -396,9 +403,12 @@ struct Operations {
                     /*
                      * Lambdas are not necessarily assignable ;(
                      */
-                    std::destroy_at(*destination_storage.template launder<T*>());
+                    T** const destination_pointer{
+                        destination_storage.template launder<T*>()
+                    };
+                    std::destroy_at(*destination_pointer);
                     destination_allocator.construct(
-                        *destination_storage.template launder<T*>(),
+                        *destination_pointer,
                         **source_storage.template launder<T*>()
                     );
                 }
@@ -422,7 +432,7 @@ struct Operations {
 
             destination_erase_mechanism.drop(destination_allocator, destination_storage);
 
-            *destination_storage.template launder<T*>() = new_object;
+            destination_storage.template construct<T*>(new_object);
         }
     }
 
@@ -498,13 +508,15 @@ struct Operations {
                      */
                     T tmp{ std::move(*lhs_storage.template launder<T>()) };
                     lhs_allocator.destroy(lhs_storage.template launder<T>());
-                    lhs_allocator.construct(
-                        lhs_storage.template launder<T>(),
+                    lhs_storage.template construct_using_allocator<T>(
+                        lhs_allocator,
                         std::move(*rhs_storage.template launder<T>())
                     );
                     rhs_allocator.destroy(rhs_storage.template launder<T>());
-                    rhs_allocator
-                        .construct(rhs_storage.template launder<T>(), std::move(tmp));
+                    rhs_storage.template construct_using_allocator<T>(
+                        rhs_allocator,
+                        std::move(tmp)
+                    );
                 }
             }
             else
@@ -525,8 +537,8 @@ struct Operations {
                     [&] noexcept -> void { rhs_erase_mechanism.drop(lhs_allocator, tmp); }
                 };
 
-                std::construct_at(
-                    rhs_storage.template launder<T>(),
+                rhs_storage.template construct_using_allocator<T>(
+                    rhs_allocator,
                     std::move(*lhs_storage.template launder<T>())
                 );
                 std::destroy_at(lhs_storage.template launder<T>());
@@ -547,7 +559,7 @@ struct Operations {
             }
             else
             {
-                T* tmp{ *lhs_storage.template launder<T*>() };
+                T* const tmp{ *lhs_storage.template launder<T*>() };
 
                 rhs_erase_mechanism.move_construct_at(
                     lhs_allocator,
@@ -557,7 +569,7 @@ struct Operations {
                 );
                 rhs_erase_mechanism.drop(rhs_allocator, rhs_storage);
 
-                *rhs_storage.template launder<T*>() = tmp;
+                rhs_storage.template construct<T*>(tmp);
             }
         }
     }

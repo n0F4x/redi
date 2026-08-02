@@ -20,7 +20,7 @@ import redi.util.concepts.storable;
 import redi.util.concepts.strips_to;
 import redi.util.containers.SmallBuffer;
 import redi.util.contracts;
-import redi.util.LifeCycleEraseMechanism;
+import redi.util.memory.LifeCycleEraseMechanism;
 import redi.util.reflection;
 import redi.util.type_traits.const_like;
 import redi.util.type_traits.forward_like;

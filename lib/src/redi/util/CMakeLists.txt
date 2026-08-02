@@ -1,5 +1,6 @@
 add_subdirectory(concepts)
 add_subdirectory(containers)
+add_subdirectory(memory)
 add_subdirectory(type_traits)
 
 target_sources(${PROJECT_NAME} PRIVATE
@@ -21,7 +22,6 @@ target_sources(${PROJECT_NAME} PUBLIC
         any_cast.ixx
         contracts.ixx
         for_each.ixx
-        LifeCycleEraseMechanism.ixx
         reflection.ixx
         ScopeFail.ixx
         TypeList.ixx
