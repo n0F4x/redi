@@ -10,8 +10,8 @@ namespace redi {
 
 export struct ReverseDependencyChainNode {
     const ReverseDependencyChainNode* previous{};
-    uint64_t                   hash;
-    std::string_view           name;
+    uint64_t                          hash;
+    std::string_view                  name;
 
     [[nodiscard]]
     auto contains(uint64_t hash) const noexcept -> bool;

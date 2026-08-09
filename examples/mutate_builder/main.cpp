@@ -43,9 +43,7 @@ struct WindowSystem::Builder : redi::EntryBuilderBase {
     }
 };
 
-struct RenderSystem
-    : redi::BuildableEntry<RenderSystem, BuildDescriber<RenderSystem>{}>   //
-{
+struct RenderSystem : redi::BuildableEntry<RenderSystem, BuildDescriber<RenderSystem>{}> {
     struct Builder;
 
     GraphicsSystemIntegration& graphics_system;

@@ -4,9 +4,7 @@ import redi.util.contracts;
 
 namespace redi {
 
-export class CyclicDependencyDetected
-    : public util::PreconditionViolation   //
-{
+export class CyclicDependencyDetected : public util::PreconditionViolation {
     using PreconditionViolation::PreconditionViolation;
 };
 

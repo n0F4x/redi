@@ -234,7 +234,8 @@ constexpr auto reinterpret_any_cast(Any_T&& any) -> forward_like_t<T, Any_T>
 #endif
 
     auto* const address{
-        any.NakedAny::BasicAny::m_erase_mechanism.address_of(any.NakedAny::BasicAny::m_storage)
+        any.NakedAny::BasicAny::m_erase_mechanism
+            .address_of(any.NakedAny::BasicAny::m_storage),
     };
 
     PRECOND(address != nullptr);

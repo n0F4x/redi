@@ -19,11 +19,9 @@ constexpr auto construct_at_using_allocator(
     {
         return std::construct_at(address, std::forward<Args_T>(args)...);
     }
-    else if constexpr (std::is_constructible_v<
-                           T,
-                           std::allocator_arg_t,
-                           const Allocator_T&,
-                           Args_T...>)
+    else if constexpr (
+        std::is_constructible_v<T, std::allocator_arg_t, const Allocator_T&, Args_T...>
+    )
     {
         return std::construct_at(
             address,

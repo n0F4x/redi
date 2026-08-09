@@ -139,7 +139,7 @@ constexpr OptionalRef<T>::OptionalRef(const OptionalRef<U> other) noexcept
     : m_handle{
           other
               .transform([](T& value) -> T* { return std::addressof(value); })
-              .value_or(nullptr)   //
+              .value_or(nullptr),
       }
 {
 }
@@ -158,7 +158,7 @@ constexpr OptionalRef<T>::OptionalRef(
     : m_handle{
           optional_ref_wrapper
               .transform([](T& ref) -> T* { return std::addressof(ref); })
-              .value_or(nullptr)   //
+              .value_or(nullptr),
       }
 {
 }

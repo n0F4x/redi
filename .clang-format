@@ -3,7 +3,7 @@ Language: Cpp
 BasedOnStyle: Google
 
 AccessModifierOffset: -4
-AlignAfterOpenBracket: BlockIndent
+AlignAfterOpenBracket: true
 AlignArrayOfStructures: Right
 AlignConsecutiveAssignments:
   Enabled: true
@@ -56,7 +56,7 @@ BraceWrapping:
   AfterCaseLabel: true
   AfterClass: false
   AfterControlStatement: Always
-  AfterEnum: true
+  AfterEnum: false
   AfterFunction: true
   AfterNamespace: false
   AfterStruct: false
@@ -72,19 +72,19 @@ BraceWrapping:
   SplitEmptyNamespace: true
 BreakAdjacentStringLiterals: true
 BreakAfterAttributes: Always
-#BreakAfterOpenBracketBracedList: true
-#BreakAfterOpenBracketFunction: true
-#BreakAfterOpenBracketIf: true
-#BreakAfterOpenBracketLoop: true
-#BreakAfterOpenBracketSwitch: true
+BreakAfterOpenBracketBracedList: true
+BreakAfterOpenBracketFunction: true
+BreakAfterOpenBracketIf: true
+BreakAfterOpenBracketLoop: true
+BreakAfterOpenBracketSwitch: true
 BreakAfterReturnType: Automatic
 BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Custom
-#BreakBeforeCloseBracketBracedList: true
-#BreakBeforeCloseBracketFunction: true
-#BreakBeforeCloseBracketIf: true
-#BreakBeforeCloseBracketLoop: true
-#BreakBeforeCloseBracketSwitch: true
+BreakBeforeCloseBracketBracedList: true
+BreakBeforeCloseBracketFunction: true
+BreakBeforeCloseBracketIf: true
+BreakBeforeCloseBracketLoop: true
+BreakBeforeCloseBracketSwitch: true
 BreakBeforeConceptDeclarations: Always
 BreakBeforeTemplateCloser: false
 BreakBeforeTernaryOperators: true
@@ -106,6 +106,8 @@ EmptyLineAfterAccessModifier: Never
 EmptyLineBeforeAccessModifier: Always
 EnumTrailingComma: Insert
 FixNamespaceComments: true
+ForEachMacros: [ ]
+IfMacros: [ ]
 IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: '^<.*\..*'
@@ -121,7 +123,7 @@ IncludeIsMainRegex: ''
 IndentAccessModifiers: false
 IndentCaseBlocks: false
 IndentCaseLabels: true
-# IndentExportBlock: true
+IndentExportBlock: false
 IndentExternBlock: Indent
 IndentGotoLabels: true
 IndentPPDirectives: BeforeHash

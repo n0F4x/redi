@@ -6,4 +6,4 @@ namespace redi::internal {
 
 export class BuildableEntryBuilderBase : public EntryBuilderBase {};
 
-}   // namespace redi
+}   // namespace redi::internal

@@ -418,8 +418,8 @@ struct Operations {
             T* const        new_object = *source_storage.template launder<T*>() == nullptr
                                            ? nullptr
                                            : destination_allocator.new_object<T>(
-                                          **source_storage.template launder<T*>()
-                                      );
+                                                 **source_storage.template launder<T*>()
+                                             );
             const ScopeFail new_object_guard{
                 [&] noexcept -> void
                 {

@@ -27,8 +27,8 @@ public:
 private:
     Rollback_T m_rollback;
     int        m_uncaught_exceptions{
-        []
-        {
+               []
+               {
             return
 #ifndef __cpp_constexpr_exceptions
                 std::is_constant_evaluated() ? 0 :

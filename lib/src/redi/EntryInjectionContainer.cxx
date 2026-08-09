@@ -76,13 +76,15 @@ auto EntryInjectionContainer::sort() -> void
     while (!done_sorting)
     {
         done_sorting = true;
-        for (auto&& [index, hash, dependent_hashes] : std::views::reverse(
-                 std::views::zip(
-                     std::views::iota(0uz),
-                     m_builder_hashes,
-                     m_dependent_builder_hashes
-                 )
-             ))
+        for (
+            auto&& [index, hash, dependent_hashes] : std::views::reverse(
+                std::views::zip(
+                    std::views::iota(0uz),
+                    m_builder_hashes,
+                    m_dependent_builder_hashes
+                )
+            )
+        )
         {
             if (!dependent_hashes.has_value())
             {
@@ -119,8 +121,10 @@ auto EntryInjectionContainer::check_cyclic_dependencies(
     std::pmr::memory_resource& transient_memory_resource
 ) const -> bool
 {
-    for (const auto& [builder_hash, dependency_hashes, builder_name] :
-         std::views::zip(m_builder_hashes, m_dependency_hashes, m_builder_names))
+    for (
+        const auto& [builder_hash, dependency_hashes, builder_name] :
+        std::views::zip(m_builder_hashes, m_dependency_hashes, m_builder_names)
+    )
     {
         std::pmr::vector<uint64_t> hash_cache{ &transient_memory_resource };
         hash_cache.push_back(builder_hash);
@@ -157,8 +161,10 @@ auto EntryInjectionContainer::check_cyclic_dependencies(
 
 auto EntryInjectionContainer::collect_dependent_builder_hashes() -> void
 {
-    for (auto&& [builder_hash, dependent_builder_hashes] :
-         std::views::zip(m_builder_hashes, m_dependent_builder_hashes))
+    for (
+        auto&& [builder_hash, dependent_builder_hashes] :
+        std::views::zip(m_builder_hashes, m_dependent_builder_hashes)
+    )
     {
         if (dependent_builder_hashes.has_value())
         {
@@ -169,8 +175,10 @@ auto EntryInjectionContainer::collect_dependent_builder_hashes() -> void
             dependent_builder_hashes.emplace();
         }
 
-        for (const auto& [dependent_hash, dependency_hashes] :
-             std::views::zip(m_builder_hashes, m_dependency_hashes))
+        for (
+            const auto& [dependent_hash, dependency_hashes] :
+            std::views::zip(m_builder_hashes, m_dependency_hashes)
+        )
         {
             if (std::ranges::contains(dependency_hashes, builder_hash))
             {
@@ -202,8 +210,10 @@ auto EntryInjectionContainer::bubble_up_dependencies_of(const std::size_t index)
         ),
     };
 
-    for (const std::span dependency_hashes{ m_dependency_hashes[index] };
-         const uint64_t  dependency_hash : dependency_hashes)
+    for (
+        const std::span dependency_hashes{ m_dependency_hashes[index] };
+        const uint64_t  dependency_hash : dependency_hashes
+    )
     {
         const auto dependency_hash_iter{
             std::ranges::find(
@@ -227,7 +237,11 @@ auto EntryInjectionContainer::bubble_up_dependencies_of(const std::size_t index)
             ),
         };
 
-        iter = std::ranges::rotate(iter, dependency_iter, std::ranges::next(dependency_iter))
+        iter = std::ranges::rotate(
+                   iter,
+                   dependency_iter,
+                   std::ranges::next(dependency_iter)
+        )
                    .begin();
     }
 }
@@ -250,7 +264,7 @@ auto EntryInjectionContainer::check_cyclic_dependencies(
             CyclicDependencyDetected,
             std::format(
                 "Cyclic dependency detected - entry builder of type `{}` depends on "
-                "itself "   //
+                "itself "
                 "({} -> {})",
                 builder_name,
                 dependency_chain.format(&transient_memory_resource),
