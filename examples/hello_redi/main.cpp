@@ -1,32 +1,44 @@
-#include <functional>
+#include <cstdio>
 
 import redi;
 
-struct A {
-    int value{ 42 };
-};
+struct WindowSystem {};
 
-struct B {
-    explicit B(A& a) : ref{ a.value } {}
+struct RenderSystem {
+    explicit RenderSystem(const redi::util::OptionalRef<WindowSystem> window_system)
+        : window_system{ window_system }
+    {
+    }
 
-    std::reference_wrapper<int> ref;
+    redi::util::OptionalRef<WindowSystem> window_system;
 };
 
 template <>
-struct redi::EntryTraits<B> {
-    static auto describe_build(BuildDirector<B>& build_director) -> void
+struct redi::EntryTraits<RenderSystem> {
+    static auto describe_build(redi::BuildDirector<RenderSystem>& build_director) -> void
     {
-        build_director.use_dependencies<A&>();
+        build_director.use_dependencies<redi::util::OptionalRef<WindowSystem>>();
     }
 };
 
 auto main() -> int
 {
-    redi::RegistryBuilder registry_builder;
+    /*
+     * Registering `RenderSystem` automatically registers `WindowSystem`
+     * as well when it is an unconditional dependency.
+     */
+    redi::Registry registry = redi::RegistryBuilder{}
+                                  .register_entry<RenderSystem>()
+                                  // order doesn't matter
+                                  .register_entry<WindowSystem>()
+                                  .build();
 
-    registry_builder.register_entry<B>();
-
-    redi::Registry registry = std::move(registry_builder).build();
-
-    return registry.at<B>().ref.get();
+    /*
+     * `RenderSystem` is never headless when `WindowSystem` is present
+     */
+    std::puts(
+        registry.at<RenderSystem>().window_system.has_value()   //
+            ? "Renderer is not headless"
+            : "Renderer is headless"
+    );
 }

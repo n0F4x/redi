@@ -5,9 +5,28 @@
 `redi` is another dependency injection library focusing on providing a great developer experience.
 
 ```c++
+#include <cstdio>
+#include <optional>
+
 import redi;
 
-// ... your own imports
+struct WindowSystem {};
+
+struct RenderSystem {
+    explicit RenderSystem(std::optional<WindowSystem&> window_system)
+        : window_system{ window_system }
+    {}
+
+    std::optional<WindowSystem&> window_system;
+};
+
+template <>
+struct redi::EntryTraits<RenderSystem> {
+    static void describe_build(redi::BuildDirector<RenderSystem>& build_director)
+    {
+        build_director.use_dependencies<std::optional<WindowSystem&>>();
+    }
+};
 
 int main()
 {
@@ -16,8 +35,8 @@ int main()
      * as well when it is an unconditional dependency.
      */
     redi::Registry registry = redi::RegistryBuilder{}
-                                  // order doesn't matter
                                   .register_entry<RenderSystem>()
+                                  // order doesn't matter
                                   .register_entry<WindowSystem>()
                                   .build();
     
@@ -25,9 +44,9 @@ int main()
      * `RenderSystem` is never headless when `WindowSystem` is present
      */
     std::puts(
-        registry.at<RenderSystem>().window_system == nullptr   //
-            ? "Renderer is headless"
-            : "Renderer is not headless"
+        registry.at<RenderSystem>().window_system.has_value()
+            ? "Renderer is not headless"
+            : "Renderer is headless"
     );
 }
 ```
