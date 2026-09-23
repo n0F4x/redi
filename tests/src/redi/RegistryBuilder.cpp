@@ -3,13 +3,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-import redi.BuildableEntry;
 import redi.BuildableEntryBuilder;
 import redi.BuildDirector;
-import redi.ConfigurationEntry;
 import redi.CyclicDependencyDetected;
-import redi.EntryBase;
+import redi.entry_c;
 import redi.EntryBuilderBase;
+import redi.EntryTraits;
 import redi.Registry;
 import redi.RegistryBuilder;
 import redi.util.containers.OptionalRef;
@@ -21,14 +20,6 @@ namespace {
 
 const std::string type_name{ util::name_of<RegistryBuilder>() };
 
-template <typename Entry_T>
-struct BuildDescriber {
-    constexpr static auto operator()(BuildDirector<Entry_T>& build_director) -> void
-    {
-        build_director.template use_builder<typename Entry_T::Builder>();
-    }
-};
-
 template <typename Builder_T>
 struct BuilderBuildDescriber {
     constexpr static auto operator()(BuildDirector<Builder_T>& build_director) -> void
@@ -37,9 +28,11 @@ struct BuilderBuildDescriber {
     }
 };
 
-struct SelfBuildDependentEntry
-    : BuildableEntry<SelfBuildDependentEntry, BuildDescriber<SelfBuildDependentEntry>{}>   //
-{
+struct BuildableEntry {};
+
+struct ConfigurationEntry {};
+
+struct SelfBuildDependentEntry : BuildableEntry {
     struct Builder : EntryBuilderBase {
         [[nodiscard]]
         // ReSharper disable once CppDeclaratorNeverUsed
@@ -51,9 +44,7 @@ struct SelfBuildDependentEntry
     };
 };
 
-struct SelfCreateDependentEntry
-    : BuildableEntry<SelfCreateDependentEntry, BuildDescriber<SelfCreateDependentEntry>{}>   //
-{
+struct SelfCreateDependentEntry : BuildableEntry {
     struct Builder : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
         [[nodiscard]]
         // ReSharper disable once CppDeclaratorNeverUsed
@@ -71,11 +62,7 @@ struct SelfCreateDependentEntry
     };
 };
 
-struct OptionalSelfBuildDependentEntry
-    : BuildableEntry<
-          OptionalSelfBuildDependentEntry,
-          BuildDescriber<OptionalSelfBuildDependentEntry>{}>   //
-{
+struct OptionalSelfBuildDependentEntry : BuildableEntry {
     struct Builder : EntryBuilderBase {
         [[nodiscard]]
         // ReSharper disable once CppDeclaratorNeverUsed
@@ -88,11 +75,7 @@ struct OptionalSelfBuildDependentEntry
     };
 };
 
-struct OptionalSelfCreateDependentEntry
-    : BuildableEntry<
-          OptionalSelfCreateDependentEntry,
-          BuildDescriber<OptionalSelfCreateDependentEntry>{}>   //
-{
+struct OptionalSelfCreateDependentEntry : BuildableEntry {
     struct Builder : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
         [[nodiscard]]
         // ReSharper disable once CppDeclaratorNeverUsed
@@ -113,9 +96,7 @@ struct OptionalSelfCreateDependentEntry
 struct EntryCyclicBuildEntryA;
 struct EntryCyclicBuildEntryB;
 
-struct EntryCyclicBuildEntryA
-    : BuildableEntry<EntryCyclicBuildEntryA, BuildDescriber<EntryCyclicBuildEntryA>{}>   //
-{
+struct EntryCyclicBuildEntryA : BuildableEntry {
     struct Builder : EntryBuilderBase {
         [[nodiscard]]
         // ReSharper disable once CppDeclaratorNeverUsed
@@ -127,9 +108,7 @@ struct EntryCyclicBuildEntryA
     };
 };
 
-struct EntryCyclicBuildEntryB
-    : BuildableEntry<EntryCyclicBuildEntryB, BuildDescriber<EntryCyclicBuildEntryB>{}>   //
-{
+struct EntryCyclicBuildEntryB : BuildableEntry {
     struct Builder : EntryBuilderBase {
         [[nodiscard]]
         // ReSharper disable once CppDeclaratorNeverUsed
@@ -141,23 +120,15 @@ struct EntryCyclicBuildEntryB
     };
 };
 
-struct BuilderCyclicBuildEntryA
-    : BuildableEntry<BuilderCyclicBuildEntryA, BuildDescriber<BuilderCyclicBuildEntryA>{}>   //
-{
+struct BuilderCyclicBuildEntryA : BuildableEntry {
     struct Builder;
 };
 
-struct BuilderCyclicBuildEntryB
-    : BuildableEntry<BuilderCyclicBuildEntryB, BuildDescriber<BuilderCyclicBuildEntryB>{}>   //
-{
+struct BuilderCyclicBuildEntryB : BuildableEntry {
     struct Builder;
 };
 
-struct EntryAndBuilderCyclicBuildEntryA
-    : BuildableEntry<
-          EntryAndBuilderCyclicBuildEntryA,
-          BuildDescriber<EntryAndBuilderCyclicBuildEntryA>{}>   //
-{
+struct EntryAndBuilderCyclicBuildEntryA : BuildableEntry {
     struct Builder : EntryBuilderBase {
         [[nodiscard]]
         // ReSharper disable once CppDeclaratorNeverUsed
@@ -168,11 +139,7 @@ struct EntryAndBuilderCyclicBuildEntryA
     };
 };
 
-struct EntryAndBuilderCyclicBuildEntryB
-    : BuildableEntry<
-          EntryAndBuilderCyclicBuildEntryB,
-          BuildDescriber<EntryAndBuilderCyclicBuildEntryB>{}>   //
-{
+struct EntryAndBuilderCyclicBuildEntryB : BuildableEntry {
     struct Builder : EntryBuilderBase {
         [[nodiscard]]
         // ReSharper disable once CppDeclaratorNeverUsed
@@ -206,15 +173,11 @@ struct BuilderCyclicBuildEntryB::Builder : EntryBuilderBase {
     }
 };
 
-struct CyclicCreateEntryA
-    : BuildableEntry<CyclicCreateEntryA, BuildDescriber<CyclicCreateEntryA>{}>   //
-{
+struct CyclicCreateEntryA : BuildableEntry {
     struct Builder;
 };
 
-struct CyclicCreateEntryB
-    : BuildableEntry<CyclicCreateEntryB, BuildDescriber<CyclicCreateEntryB>{}>   //
-{
+struct CyclicCreateEntryB : BuildableEntry {
     struct Builder;
 };
 
@@ -252,10 +215,9 @@ struct CyclicCreateEntryB::Builder
     }
 };
 
-struct EntryDependencyA : EntryBase {};
+struct EntryDependencyA {};
 
-struct EntryDependencyB
-    : BuildableEntry<EntryDependencyB, BuildDescriber<EntryDependencyB>{}> {
+struct EntryDependencyB : BuildableEntry {
     constexpr explicit EntryDependencyB(EntryDependencyA&) noexcept {}
 
     struct Builder : EntryBuilderBase {
@@ -268,9 +230,7 @@ struct EntryDependencyB
     };
 };
 
-struct EntryBuilderDependencyA
-    : BuildableEntry<EntryBuilderDependencyA, BuildDescriber<EntryBuilderDependencyA>{}>   //
-{
+struct EntryBuilderDependencyA : BuildableEntry {
     struct Builder : EntryBuilderBase {
         [[nodiscard]]
         // ReSharper disable once CppDeclaratorNeverUsed
@@ -281,9 +241,7 @@ struct EntryBuilderDependencyA
     };
 };
 
-struct EntryBuilderDependencyB
-    : BuildableEntry<EntryBuilderDependencyB, BuildDescriber<EntryBuilderDependencyB>{}>   //
-{
+struct EntryBuilderDependencyB : BuildableEntry {
     constexpr explicit EntryBuilderDependencyB(
         const EntryBuilderDependencyA::Builder&
     ) noexcept
@@ -304,9 +262,7 @@ struct EntryBuilderDependencyB
 
 struct BuilderEntryDependencyA : ConfigurationEntry {};
 
-struct BuilderEntryDependencyB
-    : BuildableEntry<BuilderEntryDependencyB, BuildDescriber<BuilderEntryDependencyB>{}>   //
-{
+struct BuilderEntryDependencyB : BuildableEntry {
     constexpr explicit BuilderEntryDependencyB(BuilderEntryDependencyA&) noexcept {}
 
     struct Builder : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
@@ -331,17 +287,11 @@ struct BuilderEntryDependencyB
     };
 };
 
-struct DependencyInversionEntryA : BuildableEntry<
-                                       DependencyInversionEntryA,
-                                       BuildDescriber<DependencyInversionEntryA>{}>   //
-{
+struct DependencyInversionEntryA : BuildableEntry {
     struct Builder;
 };
 
-struct DependencyInversionEntryB : BuildableEntry<
-                                       DependencyInversionEntryB,
-                                       BuildDescriber<DependencyInversionEntryB>{}>   //
-{
+struct DependencyInversionEntryB : BuildableEntry {
     struct Builder : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
         [[nodiscard]]
         constexpr static auto create(DependencyInversionEntryA::Builder&) noexcept
@@ -371,6 +321,21 @@ struct DependencyInversionEntryA::Builder : EntryBuilderBase {
 };
 
 }   // namespace
+
+template <std::derived_from<BuildableEntry> Entry_T>
+    requires redi::entry_c<Entry_T>
+struct EntryTraits<Entry_T> {
+    constexpr static auto describe_build(BuildDirector<Entry_T>& build_director) -> void
+    {
+        build_director.template use_builder<typename Entry_T::Builder>();
+    }
+};
+
+template <std::derived_from<ConfigurationEntry> Entry_T>
+    requires redi::entry_c<Entry_T>
+struct EntryTraits<Entry_T> {
+    constexpr static bool is_configuration_entry{ true };
+};
 
 TEST_CASE(type_name)
 {

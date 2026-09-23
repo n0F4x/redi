@@ -1,13 +1,17 @@
+#include <concepts>
 #include <cstdio>
 #include <utility>
 
 import redi;
 
-struct GraphicsSystemIntegration : redi::EntryBase {};
+struct BuildableEntry {};
 
-template <typename Entry_T>
-struct BuildDescriber {
-    constexpr static auto operator()(redi::BuildDirector<Entry_T>& build_director) -> void
+struct GraphicsSystemIntegration {};
+
+template <std::derived_from<BuildableEntry> Entry_T>
+    requires redi::entry_c<Entry_T>
+struct redi::EntryTraits<Entry_T> {
+    constexpr static auto describe_build(BuildDirector<Entry_T>& build_director) -> void
     {
         build_director.template use_builder<typename Entry_T::Builder>();
     }
@@ -22,7 +26,7 @@ struct BuilderBuildDescriber {
     }
 };
 
-struct WindowSystem : redi::BuildableEntry<WindowSystem, BuildDescriber<WindowSystem>{}> {
+struct WindowSystem : BuildableEntry {
     struct Builder;
 
     GraphicsSystemIntegration* graphics_system{};
@@ -43,7 +47,7 @@ struct WindowSystem::Builder : redi::EntryBuilderBase {
     }
 };
 
-struct RenderSystem : redi::BuildableEntry<RenderSystem, BuildDescriber<RenderSystem>{}> {
+struct RenderSystem : BuildableEntry {
     struct Builder;
 
     GraphicsSystemIntegration& graphics_system;

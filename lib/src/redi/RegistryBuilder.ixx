@@ -1,16 +1,15 @@
 module;
 
-#include <concepts>
 #include <memory_resource>
 
 export module redi.RegistryBuilder;
 
-import redi.BuildableEntryBase;
 import redi.BuildDirector;
 import redi.configuration_entry_c;
 import redi.entry_c;
 import redi.EntryBuilderContainer;
 import redi.EntryInjectionContainer;
+import redi.EntryTraits;
 import redi.Registry;
 
 namespace redi {
@@ -60,9 +59,6 @@ private:
 
 namespace redi {
 
-template <typename Entry_T>
-concept buildable_entry_c = std::derived_from<Entry_T, internal::BuildableEntryBase>;
-
 template <configuration_entry_c... Entries_T>
 RegistryBuilder::RegistryBuilder(
     std::allocator_arg_t,
@@ -77,15 +73,19 @@ RegistryBuilder::RegistryBuilder(
 template <entry_c Entry_T, typename Self_T>
 auto RegistryBuilder::register_entry(this Self_T&& self) -> Self_T&&
 {
-    if constexpr (buildable_entry_c<Entry_T>)
+    if constexpr (requires(BuildDirector<Entry_T> build_director) {
+                      EntryTraits<Entry_T>::describe_build(build_director);
+                  })
     {
+        static_assert(not configuration_entry_c<Entry_T>);
+
         BuildDirector<Entry_T> build_director{
             self.RegistryBuilder::m_injections,
             self.RegistryBuilder::m_builders,
             self.RegistryBuilder::m_registry,
         };
 
-        describe_build(std::type_identity<internal::BuildableEntryBase>{}, build_director);
+        EntryTraits<Entry_T>::describe_build(build_director);
     }
     else
     {

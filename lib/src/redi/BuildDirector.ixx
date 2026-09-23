@@ -9,19 +9,19 @@ module;
 
 export module redi.BuildDirector;
 
-import redi.BuildableEntryBase;
 import redi.BuildableEntryBuilderBase;
 import redi.configuration_entry_c;
 import redi.entry_c;
 import redi.entry_builder_c;
-import redi.EntryBase;
 import redi.EntryBuilderBase;
 import redi.EntryBuilderContainer;
 import redi.EntryInjectionContainer;
+import redi.EntryTraits;
 import redi.Registry;
 import redi.represents_entry_builder_dependency_c;
 import redi.represents_entry_dependency_c;
 import redi.util.concepts.function_pointer;
+import redi.util.concepts.specialization_of;
 import redi.util.containers.OptionalRef;
 import redi.util.contracts;
 import redi.util.reflection;
@@ -74,16 +74,17 @@ struct IsEntryBuilderMakerFunctionPointer {
 };
 
 template <typename EntryBuilder_T, typename... Args_T, bool is_noexcept_T>
+    requires(represents_entry_builder_dependency_c<Args_T> && ...)
 struct IsEntryBuilderMakerFunctionPointer<
     EntryBuilder_T,
     auto (*)(Args_T...) noexcept(is_noexcept_T)->EntryBuilder_T>   //
 {
-    constexpr static bool value{ (represents_entry_builder_dependency_c<Args_T> && ...) };
+    constexpr static bool value{ true };
 };
 
 template <typename T, typename EntryBuilder_T>
 concept entry_builder_maker_function_pointer_c
-    = IsEntryBuilderMakerFunctionPointer<EntryBuilder_T, T>::value;
+    = requires { IsEntryBuilderMakerFunctionPointer<EntryBuilder_T, T>::value; };
 
 template <entry_builder_c EntryBuilder_T>
 class BuildDirector<EntryBuilder_T> : public BuildDirectorBase {
@@ -180,7 +181,8 @@ auto BuildDirectorBase::reset() noexcept -> void
 }
 
 template <typename T>
-concept represents_optional_dependency_c = util::optional_ref_c<T>;
+concept represents_optional_dependency_c
+    = util::specialization_of_c<T, util::OptionalRef>;
 
 template <auto injection_T>
 auto BuildDirectorBase::try_insert_injection() const -> bool
@@ -205,10 +207,7 @@ auto BuildDirectorBase::build_builder() const -> void
             *m_registry,
         };
 
-        describe_build(
-            std::type_identity<internal::BuildableEntryBuilderBase>{},
-            build_director
-        );
+        describe_build(internal::BuildableEntryBuilderBase{}, build_director);
     }
     else
     {
@@ -223,20 +222,24 @@ auto BuildDirectorBase::build_entry() const -> void
     PRECOND(m_builder_container != nullptr);
     PRECOND(m_registry != nullptr);
 
-    if constexpr (std::derived_from<Entry_T, internal::BuildableEntryBase>)
+    if constexpr (requires(BuildDirector<Entry_T> build_director) {
+                      EntryTraits<Entry_T>::describe_build(build_director);
+                  })
     {
+        static_assert(not configuration_entry_c<Entry_T>);
+
         BuildDirector<Entry_T> build_director{
-            // ReSharper disable CppDFANullDereference
             *m_injection_container,
             *m_builder_container,
             *m_registry,
-            // ReSharper restore CppDFANullDereference
         };
 
-        describe_build(std::type_identity<internal::BuildableEntryBase>{}, build_director);
+        EntryTraits<Entry_T>::describe_build(build_director);
     }
     else
     {
+        static_assert(std::default_initializable<Entry_T>);
+
         m_registry->try_emplace<Entry_T>();
     }
 }
@@ -261,13 +264,9 @@ auto BuildDirectorBase::resolve_dependency() const -> void
         {
             build_builder<StrippedDependency>();
         }
-        else if constexpr (std::derived_from<StrippedDependency, EntryBase>)
-        {
-            build_entry<StrippedDependency>();
-        }
         else
         {
-            static_assert(false, "invalid dependency");
+            build_entry<StrippedDependency>();
         }
     }
 }
@@ -351,10 +350,7 @@ auto BuildDirector<Entry_T>::use_builder() -> void
     {
         BuildDirector<Builder_T> build_director{ *this };
 
-        describe_build(
-            std::type_identity<internal::BuildableEntryBuilderBase>{},
-            build_director
-        );
+        describe_build(internal::BuildableEntryBuilderBase{}, build_director);
     }
     else
     {
@@ -374,9 +370,7 @@ auto BuildDirector<Entry_T>::use_builder() -> void
 }
 
 template <auto func_T>
-struct DummyBuilder {
-    static_assert(false, "invalid build function");
-};
+struct DummyBuilder;
 
 template <
     typename Entry_T,

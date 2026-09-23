@@ -2,7 +2,7 @@
 
 import redi;
 
-struct A : redi::EntryBase {
+struct A {
     int value{ 42 };
 };
 
@@ -10,16 +10,19 @@ struct B;
 
 auto describe_build(redi::BuildDirector<B>&) -> void;
 
-struct B : redi::BuildableEntry<B, describe_build> {
+struct B {
     explicit B(A& a) : ref{ a.value } {}
 
     std::reference_wrapper<int> ref;
 };
 
-auto describe_build(redi::BuildDirector<B>& build_director) -> void
-{
-    build_director.use_dependencies<A&>();
-}
+template <>
+struct redi::EntryTraits<B> {
+    static auto describe_build(BuildDirector<B>& build_director) -> void
+    {
+        build_director.use_dependencies<A&>();
+    }
+};
 
 auto main() -> int
 {

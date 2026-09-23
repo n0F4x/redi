@@ -15,11 +15,11 @@ module;
 export module redi.EntryBuilderContainer;
 
 import redi.DependencyChainNode;
-import redi.EntryBase;
 import redi.EntryBuilderBase;
 import redi.strip_dependency_t;
 import redi.Registry;
 import redi.ReverseDependencyChainNode;
+import redi.util.concepts.specialization_of;
 import redi.util.containers.OptionalRef;
 import redi.util.containers.MoveOnlyFunction;
 import redi.util.contracts;
@@ -170,7 +170,7 @@ auto fetch_dependency(EntryBuilderContainer& builders, Registry& registry) -> De
 
     if constexpr (std::derived_from<StrippedDependency, EntryBuilderBase>)
     {
-        if constexpr (util::optional_ref_c<Dependency_T>)
+        if constexpr (util::specialization_of_c<Dependency_T, util::OptionalRef>)
         {
             return builders.find<StrippedDependency>();
         }
@@ -179,9 +179,9 @@ auto fetch_dependency(EntryBuilderContainer& builders, Registry& registry) -> De
             return builders.at<StrippedDependency>();
         }
     }
-    else if constexpr (std::derived_from<StrippedDependency, EntryBase>)
+    else
     {
-        if constexpr (util::optional_ref_c<Dependency_T>)
+        if constexpr (util::specialization_of_c<Dependency_T, util::OptionalRef>)
         {
             return registry.find<StrippedDependency>();
         }
@@ -189,10 +189,6 @@ auto fetch_dependency(EntryBuilderContainer& builders, Registry& registry) -> De
         {
             return registry.at<StrippedDependency>();
         }
-    }
-    else
-    {
-        static_assert(false, "invalid dependency");
     }
 }
 
@@ -309,13 +305,9 @@ auto EntryBuilderContainer::try_emplace(Args_T&&... args) -> bool
                         util::result_of_t<decltype(&StrippedDependency::build)>>()
                 );
             }
-            else if constexpr (std::derived_from<StrippedDependency, EntryBase>)
-            {
-                entry_dependency_hashes.push_back(util::hash_u64<StrippedDependency>());
-            }
             else
             {
-                static_assert(false, "invalid build dependency");
+                entry_dependency_hashes.push_back(util::hash_u64<StrippedDependency>());
             }
         }
     );
