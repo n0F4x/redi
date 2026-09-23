@@ -6,10 +6,6 @@ struct A {
     int value{ 42 };
 };
 
-struct B;
-
-auto describe_build(redi::BuildDirector<B>&) -> void;
-
 struct B {
     explicit B(A& a) : ref{ a.value } {}
 

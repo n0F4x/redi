@@ -16,11 +16,9 @@ This may be useful for storing context variables, or replacing singletons - and 
 ## Entries
 
 The registry works with entries.
-Each type that satisfies the `redi::entry_c` concept may be used as an entry.
 
 ```c++
-// entries must derive from `EntryBase`
-struct Entry : redi::EntryBase {};
+struct Entry {};
 
 registry.emplace<Entry>();
 ```
@@ -30,41 +28,35 @@ registry.emplace<Entry>();
 Entries must make it obvious which other entries they depend on, so that the library can determine the dependencies it needs to pull in when constructing them.
 
 ```c++
-struct Entry;
-
-auto describe_build(redi::BuildDirector<Entry>& director) -> void;
-
-struct Entry : redi::BuildableEntry<Entry, describe_build> {
+struct Entry {
     explicit Entry(OtherEntry& other_entry);
 };
 
-auto describe_build(redi::BuildDirector<Entry>& director) -> void 
-{
-    director.use_dependencies<OtherEntry&>();   
-}
+template <>
+struct redi::EntryTraits<Entry> {
+    auto describe_build(redi::BuildDirector<Entry>& director) -> void 
+    {
+        director.use_dependencies<OtherEntry&>();   
+    }
+};
 ```
-
-One might think that this looks like too much boilerplate.
-However, the library chooses to enforce dependency descriptions this way, so that the resulting template instantiations may end up in one source file per declaration while also giving the highest degree of freedom to the user.
-This dramatically increases compilation speed when used with deep dependency hierachies.
 
 #### Building entries using custom functions
 
 Note that the build director also accepts a free function.
 
 ```c++
-struct Entry;
-
-auto describe_build(redi::BuildDirector<Entry>& director) -> void;
-
 struct Entry : redi::BuildableEntry<Entry, describe_build> {};
 
 auto make_entry(OtherEntry& other_entry) -> Entry;
 
-auto describe_build(redi::BuildDirector<Entry>& director) -> void 
-{
-    director.use_function<make_entry>();   
-}
+template <>
+struct redi::EntryTraits<Entry> {
+    auto describe_build(redi::BuildDirector<Entry>& director) -> void 
+    {
+        director.use_function<make_entry>();   
+    }
+};
 ```
 
 ### Entry builders
@@ -73,20 +65,19 @@ Some entries require more setup than others.
 Each entry type might decide to be built by a builder type.
 
 ```c++
-struct Entry;
-
-auto describe_build(redi::BuildDirector<Entry>& director) -> void;
-
-struct Entry : redi::BuildableEntry<Entry, describe_build> {};
+struct Entry {};
 
 struct EntryBuilder : redi::EntryBuilderBase {
     auto build(OtherEntry& other_entry) -> Entry;
 };
 
-auto describe_build(redi::BuildDirector<Entry>& director) -> void
-{
-    director.use_builder<EntryBuilder>();
-}
+template <>
+struct redi::EntryTraits<Entry> {
+    auto describe_build(redi::BuildDirector<Entry>& director) -> void
+    {
+        director.use_builder<EntryBuilder>();
+    }
+};
 ```
 
 Entries can also depend on other builders, given that these builders are invoked later in the dependency graph.
@@ -118,7 +109,7 @@ auto describe_build(redi::BuildDirector<EntryBuilder>& director) -> void
 }
 ```
 
-Notice how `make_entry_builder` takes a mutable reference to `OtherEntryBuilder`.
+Notice how `EntryBuilder`'s constructor takes a mutable reference to `OtherEntryBuilder`.
 This is the way builders are supposed to configure other builders.
 
 `build` methods on the other hand must take other builders by `const&`.
@@ -127,11 +118,19 @@ This is to discourage `build` methods relying on other builders, as this pattern
 ### Configuration entries
 
 Configuration entries are special as they explicitly declare that they do not depend on any other entry.
+
+```c++
+struct ConfigurationEntry {};
+
+template <>
+struct redi::EntryTraits<ConfigurationEntry> {
+    constexpr static bool is_configuration_entry{ true };
+};
+```
+
 This makes it ideal not only for other entries, but also builders to depend on them.
 
 ```c++
-struct ConfigurationEntry : redi::ConfigurationEntry {};
-
 auto make_entry_builder(ConfigurationEntry& configuration_entry) -> EntryBuilder;
 ```
 

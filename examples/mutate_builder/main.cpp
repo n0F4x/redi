@@ -6,8 +6,6 @@ import redi;
 
 struct BuildableEntry {};
 
-struct GraphicsSystemIntegration {};
-
 template <std::derived_from<BuildableEntry> Entry_T>
     requires redi::entry_c<Entry_T>
 struct redi::EntryTraits<Entry_T> {
@@ -25,6 +23,8 @@ struct BuilderBuildDescriber {
         build_director.template use_function<EntryBuilder_T::create>();
     }
 };
+
+struct GraphicsSystemIntegration {};
 
 struct WindowSystem : BuildableEntry {
     struct Builder;
