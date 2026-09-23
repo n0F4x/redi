@@ -292,7 +292,7 @@ constexpr Function<
       m_invoke{ other.m_invoke },
       m_storage{
           m_erase_mechanism
-              .move_construct(m_allocator, allocator, std::move(other.m_storage)),
+              .move_construct(m_allocator, other.m_allocator, std::move(other.m_storage)),
       }
 {
 }
