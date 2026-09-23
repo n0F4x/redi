@@ -77,8 +77,6 @@ auto RegistryBuilder::register_entry(this Self_T&& self) -> Self_T&&
                       EntryTraits<Entry_T>::describe_build(build_director);
                   })
     {
-        static_assert(not configuration_entry_c<Entry_T>);
-
         BuildDirector<Entry_T> build_director{
             self.RegistryBuilder::m_injections,
             self.RegistryBuilder::m_builders,

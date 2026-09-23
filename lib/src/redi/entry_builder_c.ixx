@@ -6,7 +6,6 @@ module;
 export module redi.entry_builder_c;
 
 import redi.BuildableEntryBuilderBase;
-import redi.configuration_entry_c;
 import redi.entry_c;
 import redi.EntryBuilderBase;
 import redi.represents_entry_dependency_c;

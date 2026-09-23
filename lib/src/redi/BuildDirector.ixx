@@ -10,7 +10,6 @@ module;
 export module redi.BuildDirector;
 
 import redi.BuildableEntryBuilderBase;
-import redi.configuration_entry_c;
 import redi.entry_c;
 import redi.entry_builder_c;
 import redi.EntryBuilderBase;
@@ -226,8 +225,6 @@ auto BuildDirectorBase::build_entry() const -> void
                       EntryTraits<Entry_T>::describe_build(build_director);
                   })
     {
-        static_assert(not configuration_entry_c<Entry_T>);
-
         BuildDirector<Entry_T> build_director{
             *m_injection_container,
             *m_builder_container,
@@ -238,8 +235,6 @@ auto BuildDirectorBase::build_entry() const -> void
     }
     else
     {
-        static_assert(std::default_initializable<Entry_T>);
-
         m_registry->try_emplace<Entry_T>();
     }
 }
