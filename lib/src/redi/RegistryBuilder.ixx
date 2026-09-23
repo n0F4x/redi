@@ -7,6 +7,7 @@ export module redi.RegistryBuilder;
 
 import redi.BuildableEntryBase;
 import redi.BuildDirector;
+import redi.configuration_entry_c;
 import redi.entry_c;
 import redi.EntryBuilderContainer;
 import redi.EntryInjectionContainer;
@@ -26,7 +27,7 @@ public:
     explicit RegistryBuilder() = default;
     explicit RegistryBuilder(const allocator_type&);
 
-    template <decays_to_entry_c... Entries_T>
+    template <configuration_entry_c... Entries_T>
     explicit RegistryBuilder(
         std::allocator_arg_t,
         const allocator_type&,
@@ -62,7 +63,7 @@ namespace redi {
 template <typename Entry_T>
 concept buildable_entry_c = std::derived_from<Entry_T, internal::BuildableEntryBase>;
 
-template <decays_to_entry_c... Entries_T>
+template <configuration_entry_c... Entries_T>
 RegistryBuilder::RegistryBuilder(
     std::allocator_arg_t,
     const allocator_type& allocator,
