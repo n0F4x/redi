@@ -2,7 +2,7 @@
 
 ## Overview
 
-`redi` is another dependency injection library focusing on providing a great developer experience.
+`redi` is a dependency injection library focusing on providing a great developer experience.
 
 ```c++
 #include <cstdio>
@@ -65,6 +65,8 @@ int main()
     ```
     Cyclic dependency detected - entry of type `WindowSystem` depends on itself (WindowSystem -> RenderSystem -> WindowSystem)
     ```
+- Optimized for compile times
+    - `redi` intentionally bypasses compile-time dependency detection. By eliminating the need to track transitive dependencies per source file, it significantly speeds up compilation.
 
 ## Tutorial
 
