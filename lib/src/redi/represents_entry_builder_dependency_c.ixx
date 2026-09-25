@@ -11,6 +11,7 @@ import redi.util.containers.OptionalRef;
 
 namespace redi {
 
+// clang-format off
 export template <typename T>
 concept represents_entry_builder_dependency_c
     = (std::is_lvalue_reference_v<T>
@@ -19,5 +20,6 @@ concept represents_entry_builder_dependency_c
    || (util::optional_ref_c<T>
        && (std::derived_from<std::remove_const_t<typename T::value_type>, EntryBuilderBase>
            || requires { requires EntryTraits<T>::is_configuration_entry; }));
+// clang-format on
 
 }   // namespace redi

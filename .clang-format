@@ -43,13 +43,10 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: false
 AllowShortNamespacesOnASingleLine: false
-AlwaysBreakAfterReturnType: None
+AllowShortRecordOnASingleLine: Empty
 AlwaysBreakBeforeMultilineStrings: true
-AlwaysBreakTemplateDeclarations: Yes
 AttributeMacros: [ ]
-BinPackArguments: false
 BinPackLongBracedList: false
-BinPackParameters: false
 BitFieldColonSpacing: Both
 BracedInitializerIndentWidth: 4
 BraceWrapping:
@@ -86,10 +83,12 @@ BreakBeforeCloseBracketIf: true
 BreakBeforeCloseBracketLoop: true
 BreakBeforeCloseBracketSwitch: true
 BreakBeforeConceptDeclarations: Always
+BreakBeforeReturnType: None
 BreakBeforeTemplateCloser: false
 BreakBeforeTernaryOperators: true
 BreakBinaryOperations: RespectPrecedence
 BreakConstructorInitializers: BeforeColon
+BreakFunctionDeclarationParameters: false
 BreakFunctionDefinitionParameters: false
 BreakInheritanceList: BeforeColon
 BreakStringLiterals: true
@@ -99,7 +98,7 @@ CommentPragmas: ''
 CompactNamespaces: false
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
-Cpp11BracedListStyle: false
+Cpp11BracedListStyle: Block
 DerivePointerAlignment: false
 DisableFormat: false
 EmptyLineAfterAccessModifier: Never
@@ -156,7 +155,11 @@ NumericLiteralCase:
   Suffix: Lower
 OneLineFormatOffRegex: ^(// disable clang-format$)
 PPIndentWidth: 2
+PackArguments:
+  BinPack: OnePerLine
 PackConstructorInitializers: CurrentLine
+PackParameters:
+  BinPack: OnePerLine
 PenaltyBreakAssignment: 10
 PenaltyBreakBeforeFirstCallParameter: 20
 PenaltyBreakBeforeMemberAccess: 90
@@ -185,8 +188,12 @@ RequiresExpressionIndentation: OuterScope
 SeparateDefinitionBlocks: Always
 ShortNamespaceLines: 0
 SkipMacroDefinitionBody: false
-SortIncludes: CaseInsensitive
-SortUsingDeclarations: true
+SortIncludes:
+  IgnoreCase: true
+  IgnoreExtension: false
+#  Natural: true
+#  FilesBeforeFolders: true
+SortUsingDeclarations: Lexicographic
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false
 SpaceAfterOperatorKeyword: false
@@ -196,6 +203,7 @@ SpaceBeforeAssignmentOperators: true
 SpaceBeforeCaseColon: false
 SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: true
+SpaceBeforeEnumUnderlyingTypeColon: true
 SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: ControlStatementsExceptControlMacros
 SpaceBeforeParensOptions:

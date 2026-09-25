@@ -80,10 +80,10 @@ public:
     template <decays_to_basic_generic_stack_item_c<Any_T> Item_T>
     auto try_insert(Item_T&& item) -> std::pair<Item_T&, bool>;
     template <basic_generic_stack_item_c<Any_T> Item_T, typename... Args_T>
-        requires(std::constructible_from<Item_T, Args_T && ...>)
+        requires(std::constructible_from<Item_T, Args_T&&...>)
     auto emplace(Args_T&&... args) -> Item_T&;
     template <basic_generic_stack_item_c<Any_T> Item_T, typename... Args_T>
-        requires(std::constructible_from<Item_T, Args_T && ...>)
+        requires(std::constructible_from<Item_T, Args_T&&...>)
     auto try_emplace(Args_T&&... args) -> std::pair<Item_T&, bool>;
 
 private:
@@ -217,7 +217,7 @@ auto BasicGenericStack<Any_T>::try_insert(Item_T&& item) -> std::pair<Item_T&, b
 template <move_only_any_c Any_T>
     requires(Any_T::size() == 0)
 template <basic_generic_stack_item_c<Any_T> Item_T, typename... Args_T>
-    requires(std::constructible_from<Item_T, Args_T && ...>)
+    requires(std::constructible_from<Item_T, Args_T&&...>)
 auto BasicGenericStack<Any_T>::emplace(Args_T&&... args) -> Item_T&
 {
     auto&& [item, success]{ try_emplace<Item_T>(std::forward<Args_T>(args)...) };
@@ -228,7 +228,7 @@ auto BasicGenericStack<Any_T>::emplace(Args_T&&... args) -> Item_T&
 template <move_only_any_c Any_T>
     requires(Any_T::size() == 0)
 template <basic_generic_stack_item_c<Any_T> Item_T, typename... Args_T>
-    requires(std::constructible_from<Item_T, Args_T && ...>)
+    requires(std::constructible_from<Item_T, Args_T&&...>)
 auto BasicGenericStack<Any_T>::try_emplace(Args_T&&... args) -> std::pair<Item_T&, bool>
 {
     if (const OptionalRef<Item_T> found{ find<Item_T>() }; found.has_value())

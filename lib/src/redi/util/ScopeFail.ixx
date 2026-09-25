@@ -19,7 +19,7 @@ public:
     constexpr explicit(false) ScopeFail(const Rollback_T& rollback) noexcept
         requires(std::is_nothrow_constructible_v<Rollback_T, const Rollback_T&>);
     constexpr explicit(false) ScopeFail(Rollback_T&& rollback) noexcept
-        requires(std::is_nothrow_constructible_v<Rollback_T, Rollback_T &&>);
+        requires(std::is_nothrow_constructible_v<Rollback_T, Rollback_T&&>);
     ScopeFail(const ScopeFail&) = delete;
     ScopeFail(ScopeFail&&)      = default;
     constexpr ~ScopeFail();
@@ -70,7 +70,7 @@ constexpr ScopeFail<Rollback_T>::ScopeFail(const Rollback_T& rollback) noexcept
 template <storable_c Rollback_T>
     requires(std::is_nothrow_invocable_v<Rollback_T>)
 constexpr ScopeFail<Rollback_T>::ScopeFail(Rollback_T&& rollback) noexcept
-    requires(std::is_nothrow_constructible_v<Rollback_T, Rollback_T &&>)
+    requires(std::is_nothrow_constructible_v<Rollback_T, Rollback_T&&>)
     : m_rollback{ std::move(rollback) }
 {
 }
