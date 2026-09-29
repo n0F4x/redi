@@ -41,6 +41,7 @@ install(TARGETS ${PROJECT_NAME}
 install(EXPORT rediTargets
         FILE rediTargets.cmake
         NAMESPACE redi::
+        CXX_MODULES_DIRECTORY cxx-modules
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/redi
 )
 
