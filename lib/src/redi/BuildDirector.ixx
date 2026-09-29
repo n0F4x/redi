@@ -68,22 +68,19 @@ private:
 };
 
 template <typename EntryBuilder_T, typename FuncPtr_T>
-struct IsEntryBuilderMakerFunctionPointer {
-    constexpr static bool value{ false };
-};
+constexpr bool is_entry_builder_maker_function_pointer_v{ false };
 
-template <typename EntryBuilder_T, typename... Args_T, bool is_noexcept_T>
-    requires(represents_entry_builder_dependency_c<Args_T> && ...)
-struct IsEntryBuilderMakerFunctionPointer<
+template <
+    typename EntryBuilder_T,
+    represents_entry_builder_dependency_c... Args_T,
+    bool is_noexcept_T>
+constexpr bool is_entry_builder_maker_function_pointer_v<
     EntryBuilder_T,
-    auto (*)(Args_T...) noexcept(is_noexcept_T)->EntryBuilder_T>   //
-{
-    constexpr static bool value{ true };
-};
+    auto (*)(Args_T...) noexcept(is_noexcept_T)->EntryBuilder_T>{ true };
 
 template <typename T, typename EntryBuilder_T>
 concept entry_builder_maker_function_pointer_c
-    = requires { IsEntryBuilderMakerFunctionPointer<EntryBuilder_T, T>::value; };
+    = is_entry_builder_maker_function_pointer_v<EntryBuilder_T, T>;
 
 template <entry_builder_c EntryBuilder_T>
 class BuildDirector<EntryBuilder_T> : public BuildDirectorBase {
@@ -113,20 +110,15 @@ concept builds_entry_c
     = entry_builder_c<T> && std::same_as<util::result_of_t<decltype(&T::build)>, Entry_T>;
 
 template <typename Entry_T, typename FuncPtr_T>
-struct IsEntryMakerFunctionPointer {
-    constexpr static bool value{ false };
-};
+constexpr bool is_entry_maker_function_pointer_v{ false };
 
-template <typename Entry_T, typename... Args_T, bool is_noexcept_T>
-struct IsEntryMakerFunctionPointer<
+template <typename Entry_T, represents_entry_dependency_c... Args_T, bool is_noexcept_T>
+constexpr bool is_entry_maker_function_pointer_v<
     Entry_T,
-    auto (*)(Args_T...) noexcept(is_noexcept_T)->Entry_T>   //
-{
-    constexpr static bool value{ (represents_entry_dependency_c<Args_T> && ...) };
-};
+    auto (*)(Args_T...) noexcept(is_noexcept_T)->Entry_T>{ true };
 
 template <typename T, typename Entry_T>
-concept entry_maker_function_pointer_c = IsEntryMakerFunctionPointer<Entry_T, T>::value;
+concept entry_maker_function_pointer_c = is_entry_maker_function_pointer_v<Entry_T, T>;
 
 template <entry_c Entry_T>
 class BuildDirector<Entry_T> : public BuildDirectorBase {
