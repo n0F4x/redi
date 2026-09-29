@@ -1,13 +1,16 @@
+import os
+import re
+
 from conan import ConanFile
-from conan.errors import ConanInvalidConfiguration
+from conan.errors import ConanException, ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
+from conan.tools.files import load
 from conan.tools.scm import Version
 
 
 class RediRecipe(ConanFile):
     name = "redi"
-    version = "0.0.0"
     package_type = "library"
 
     # Optional metadata
@@ -48,6 +51,20 @@ class RediRecipe(ConanFile):
     @property
     def _enable_examples(self):
         return self._dev and bool(self.conf.get(f"user.{self.name}:enable_examples", default=False))
+
+    def set_version(self):
+        cmake_project_file_path = os.path.join(self.recipe_folder, "lib", "CMakeLists.txt")
+        content = load(self, cmake_project_file_path)
+
+        # Remove bracket comments (#[[ ... ]]) first, then line comments (# ...)
+        content = re.sub(r"#\[(=*)\[.*?\]\1\]", "", content, flags=re.DOTALL)
+        content = re.sub(r"#.*", "", content)
+
+        version = re.search(r"\b(?i:project)\s*\([^)]*?\bVERSION\s+(\d+\.\d+\.\d+)", content)
+        if not version:
+            raise ConanException(f"Could not extract version from {cmake_project_file_path}")
+
+        self.version = version.group(1)
 
     def validate(self):
         check_min_cppstd(self, "23")
