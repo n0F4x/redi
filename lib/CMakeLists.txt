@@ -29,6 +29,8 @@ endif ()
 add_subdirectory(src)
 
 
+include(GNUInstallDirs)
+
 install(TARGETS ${PROJECT_NAME}
         EXPORT rediTargets
         FILE_SET HEADERS
