@@ -69,7 +69,7 @@ user.redi:enable_examples=True
 PATH+=(path)C:/msys64/clang64/bin
 
 [runenv]
-PATH+=(path)C:/dev/msys64/clang64/bin
+PATH+=(path)C:/msys64/clang64/bin
 
 [platform_tool_requires]
 cmake/4.3
