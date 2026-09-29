@@ -1,7 +1,7 @@
-.conan2/
+.conan/
+.idea/
 .vs/
 .vscode/
-.idea/
 build/
 
 CMakeUserPresets.json
