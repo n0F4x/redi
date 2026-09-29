@@ -362,7 +362,8 @@ struct DummyBuilder;
 template <
     typename Entry_T,
     typename... Dependencies_T,
-    auto (*func_T)(Dependencies_T...)->Entry_T>
+    bool is_noexcept_T,
+    auto (*func_T)(Dependencies_T...) noexcept(is_noexcept_T)->Entry_T>
 struct DummyBuilder<func_T> : EntryBuilderBase {
     [[nodiscard]]
     static auto build(Dependencies_T... dependencies) -> Entry_T
