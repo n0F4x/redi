@@ -120,8 +120,8 @@ class RediRecipe(ConanFile):
         # CMakeToolChain
         tc = CMakeToolchain(self)
 
+        tc.cache_variables[self.project_prefix + "DEBUG"] = self._debug
         if self._dev:
-            tc.cache_variables[self.project_prefix + "DEBUG"] = self._debug
             tc.cache_variables[self.project_prefix + "ENABLE_TESTS"] = self._enable_tests
             tc.cache_variables[self.project_prefix + "ENABLE_EXAMPLES"] = self._enable_examples
 
