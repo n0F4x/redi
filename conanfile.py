@@ -5,7 +5,7 @@ from conan import ConanFile
 from conan.errors import ConanException, ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
-from conan.tools.files import load
+from conan.tools.files import copy, load
 from conan.tools.scm import Version
 
 
@@ -13,7 +13,8 @@ class RediRecipe(ConanFile):
     name = "redi"
     package_type = "library"
 
-    # Optional metadata
+    # Metadata
+    license = "MIT-0"
     url = "https://github.com/n0f4x/redi"
 
     # Binary configuration
@@ -29,6 +30,7 @@ class RediRecipe(ConanFile):
         "debug": False,
     }
     implements = ["auto_shared_fpic"]
+    exports = "LICENSE.md"
     exports_sources = (
         "lib/*",
     )
@@ -134,6 +136,13 @@ class RediRecipe(ConanFile):
             cmake.ctest(cli_args=["--output-on-failure"])
 
     def package(self):
+        copy(
+            self,
+            "LICENSE.md",
+            self.recipe_folder,
+            os.path.join(self.package_folder, "licenses"),
+        )
+
         cmake = CMake(self)
         cmake.install()
 
