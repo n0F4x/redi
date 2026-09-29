@@ -8,7 +8,7 @@ option(${project_prefix}DEBUG "Activate debug functionalities" OFF)
 
 
 add_library(${PROJECT_NAME})
-add_library(redi::redi ALIAS ${PROJECT_NAME})
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
@@ -32,31 +32,31 @@ add_subdirectory(src)
 include(GNUInstallDirs)
 
 install(TARGETS ${PROJECT_NAME}
-        EXPORT rediTargets
+        EXPORT ${PROJECT_NAME}Targets
         FILE_SET HEADERS
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILE_SET CXX_MODULES
         DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
-install(EXPORT rediTargets
-        FILE rediTargets.cmake
-        NAMESPACE redi::
+install(EXPORT ${PROJECT_NAME}Targets
+        FILE ${PROJECT_NAME}Targets.cmake
+        NAMESPACE ${PROJECT_NAME}::
         CXX_MODULES_DIRECTORY cxx-modules
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/redi
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
-        ${CMAKE_CURRENT_BINARY_DIR}/cmake/rediConfig.cmake
-        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/redi
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 write_basic_package_version_file(
-        ${CMAKE_CURRENT_BINARY_DIR}/cmake/rediConfigVersion.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake
         VERSION ${PROJECT_VERSION}
         COMPATIBILITY SameMajorVersion
 )
 install(FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/cmake/rediConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/cmake/rediConfigVersion.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/redi
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
