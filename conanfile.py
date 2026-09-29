@@ -76,8 +76,7 @@ class RediRecipe(ConanFile):
         supported_compilers = ["clang"]
         if self.settings.compiler not in supported_compilers:
             raise ConanInvalidConfiguration(
-                f"{self.settings.compiler} is not supported."
-                f"Supported compilers are: {supported_compilers}"
+                f"{self.settings.compiler} is not supported. Supported compilers are: {supported_compilers}"
             )
 
         if self.settings.compiler == "clang":
