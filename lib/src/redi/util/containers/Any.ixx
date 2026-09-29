@@ -346,8 +346,7 @@ template <
     std::size_t size_T,
     std::size_t alignment_T,
     template <typename> class Policy_T>
-constexpr BasicAny<is_move_only_T, size_T, alignment_T, Policy_T>::
-    ~BasicAny<is_move_only_T, size_T, alignment_T, Policy_T>()
+constexpr BasicAny<is_move_only_T, size_T, alignment_T, Policy_T>::~BasicAny()
 {
     m_erase_mechanism.drop(m_allocator, m_storage);
 }

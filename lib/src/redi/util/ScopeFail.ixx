@@ -44,7 +44,7 @@ namespace redi::util {
 
 template <storable_c Rollback_T>
     requires(std::is_nothrow_invocable_v<Rollback_T>)
-constexpr ScopeFail<Rollback_T>::~ScopeFail<Rollback_T>()
+constexpr ScopeFail<Rollback_T>::~ScopeFail()
 {
 #ifndef __cpp_constexpr_exceptions
     if !consteval
