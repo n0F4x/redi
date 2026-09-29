@@ -14,7 +14,9 @@ class RediRecipe(ConanFile):
     package_type = "library"
 
     # Metadata
+    description = "An automatic dependency injection library"
     license = "MIT-0"
+    topics = ("dependency-injection", "di", "ioc", "registry", "cpp-modules", "modules", "cpp23")
     url = "https://github.com/n0f4x/redi"
 
     # Binary configuration
