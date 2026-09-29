@@ -85,9 +85,6 @@ class RediRecipe(ConanFile):
                     f"Clang versions below {minimum_supported_clang_version} are not supported"
                 )
 
-        if self.conf.get("tools.cmake.cmaketoolchain:generator") != "Ninja":
-            raise ConanInvalidConfiguration("Only Ninja is supported as a generator")
-
         if bool(self.conf.get(f"user.{self.name}:debug", default=False)) and not self._dev:
             raise ConanInvalidConfiguration(
                 f"'user.{self.name}:debug' requires 'user.{self.name}:dev'"
