@@ -50,7 +50,13 @@ configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/rediConfig.cmake
         INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/redi
 )
+write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/rediConfigVersion.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion
+)
 install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/rediConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/rediConfigVersion.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/redi
 )
