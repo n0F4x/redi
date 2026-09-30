@@ -1,6 +1,8 @@
 module;
 
+#include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <memory_resource>
 #include <string_view>
@@ -14,6 +16,8 @@ export module redi.util.memory.LifeCycleEraseMechanism;
 import redi.util.concepts.nothrow_movable;
 import redi.util.containers.SmallBuffer;
 import redi.util.contracts;
+import redi.util.memory.make_obj_using_allocator;
+import redi.util.memory.nothrow_uses_allocator_move_constructible_c;
 import redi.util.reflection;
 import redi.util.ScopeFail;
 
@@ -21,7 +25,9 @@ namespace redi::util {
 
 export template <typename T, std::size_t size_T, std::size_t alignment_T>
 concept uses_small_buffer_optimization_c
-    = fits_in_small_buffer_c<T, size_T, alignment_T> && nothrow_movable_c<T>;
+    = fits_in_small_buffer_c<T, size_T, alignment_T>
+   && nothrow_movable_c<T>
+   && nothrow_uses_allocator_move_constructible_c<T, std::pmr::polymorphic_allocator<>>;
 
 export template <bool is_move_only_T, std::size_t size_T, std::size_t alignment_T>
 class LifeCycleEraseMechanism;
@@ -361,31 +367,25 @@ struct Operations {
                 {
                     *destination_storage.template launder<T>()
                         = *source_storage.template launder<T>();
+                    return;
                 }
-                else
-                {
-                    /*
-                     * Lambdas are not necessarily assignable ;(
-                     */
-                    std::destroy_at(destination_storage.template launder<T>());
-                    destination_storage.template construct_using_allocator<T>(
-                        destination_allocator,
-                        *source_storage.template launder<T>()
-                    );
-                }
+
+                /*
+                 * Lambdas are not necessarily assignable ;(
+                 */
             }
-            else
-            {
-                T new_object{ *source_storage.template launder<T>() };
 
-                destination_erase_mechanism
-                    .drop(destination_allocator, destination_storage);
-
-                destination_storage.template construct_using_allocator<T>(
+            T new_object{
+                ::redi::util::make_obj_using_allocator<T>(
                     destination_allocator,
-                    std::move(new_object)
-                );
-            }
+                    *source_storage.template launder<T>()
+                ),
+            };
+            destination_erase_mechanism.drop(destination_allocator, destination_storage);
+            destination_storage.template construct_using_allocator<T>(
+                destination_allocator,
+                std::move(new_object)
+            );
         }
         else
         {
@@ -397,22 +397,35 @@ struct Operations {
                 {
                     **destination_storage.template launder<T*>()
                         = **source_storage.template launder<T*>();
+
+                    return;
                 }
-                else
+
+                /*
+                 * Lambdas are not necessarily assignable ;(
+                 */
+                if constexpr (
+                    nothrow_uses_allocator_move_constructible_c<
+                        T,
+                        std::pmr::polymorphic_allocator<>>
+                )
                 {
-                    /*
-                     * Lambdas are not necessarily assignable ;(
-                     */
+                    T new_object{
+                        ::redi::util::make_obj_using_allocator<T>(
+                            destination_allocator,
+                            **source_storage.template launder<T*>()
+                        ),
+                    };
+
                     T** const destination_pointer{
                         destination_storage.template launder<T*>()
                     };
                     std::destroy_at(*destination_pointer);
-                    destination_allocator.construct(
-                        *destination_pointer,
-                        **source_storage.template launder<T*>()
-                    );
+                    destination_allocator
+                        .construct(*destination_pointer, std::move(new_object));
+
+                    return;
                 }
-                return;
             }
 
             T* const        new_object = *source_storage.template launder<T*>() == nullptr
@@ -466,13 +479,13 @@ struct Operations {
     [[nodiscard]]
     constexpr static auto type_hash() noexcept -> uint64_t
     {
-        return util::hash_u64<T>();
+        return hash_u64<T>();
     }
 
     [[nodiscard]]
     constexpr static auto type_name() noexcept -> std::string_view
     {
-        return util::name_of<T>();
+        return name_of<T>();
     }
 
     [[nodiscard]]
@@ -525,6 +538,7 @@ struct Operations {
                     rhs_erase_mechanism.uses_small_buffer()
                     || lhs_allocator == rhs_allocator
                 );
+
                 Storage<size_T, alignment_T> tmp;
                 rhs_erase_mechanism.move_construct_at(
                     lhs_allocator,
@@ -532,19 +546,20 @@ struct Operations {
                     rhs_allocator,
                     std::move(rhs_storage)
                 );
-                rhs_erase_mechanism.drop(rhs_allocator, rhs_storage);
-                const ScopeFail tmp_guard{
+                ScopeFail drop_tmp_guard{
                     [&] noexcept -> void { rhs_erase_mechanism.drop(lhs_allocator, tmp); }
                 };
 
+                rhs_erase_mechanism.drop(rhs_allocator, rhs_storage);
                 rhs_storage.template construct_using_allocator<T>(
                     rhs_allocator,
                     std::move(*lhs_storage.template launder<T>())
                 );
-                std::destroy_at(lhs_storage.template launder<T>());
 
+                std::destroy_at(lhs_storage.template launder<T>());
                 rhs_erase_mechanism.move_construct_at(lhs_storage, std::move(tmp));
-                rhs_erase_mechanism.drop(lhs_allocator, tmp);
+
+                std::move(drop_tmp_guard)();
             }
         }
         else

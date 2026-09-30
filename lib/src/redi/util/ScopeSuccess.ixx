@@ -48,14 +48,14 @@ constexpr ScopeSuccess<CleanUp_T>::~ScopeSuccess()
 #ifndef __cpp_constexpr_exceptions
     if consteval
     {
-        std::invoke(m_clean_up);
+        std::invoke(std::move(m_clean_up));
     }
     else
     {
 #endif
         if (m_uncaught_exceptions == std::uncaught_exceptions())
         {
-            std::invoke(m_clean_up);
+            std::invoke(std::move(m_clean_up));
         }
 #ifndef __cpp_constexpr_exceptions
     }

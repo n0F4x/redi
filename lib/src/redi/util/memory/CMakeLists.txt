@@ -5,4 +5,6 @@ target_sources(${PROJECT_NAME} PUBLIC
         memory.cppm
         construct_at_using_allocator.ixx
         LifeCycleEraseMechanism.ixx
+        make_obj_using_allocator.ixx
+        nothrow_uses_allocator_move_constructible_c.ixx
 )

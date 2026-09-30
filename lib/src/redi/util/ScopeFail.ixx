@@ -1,6 +1,5 @@
 module;
 
-#include <array>
 #include <exception>
 #include <functional>
 #include <type_traits>
@@ -24,6 +23,8 @@ public:
     ScopeFail(ScopeFail&&)      = default;
     constexpr ~ScopeFail();
 
+    constexpr auto operator()() && noexcept -> void;
+
 private:
     Rollback_T m_rollback;
     int        m_uncaught_exceptions{
@@ -46,17 +47,30 @@ template <storable_c Rollback_T>
     requires(std::is_nothrow_invocable_v<Rollback_T>)
 constexpr ScopeFail<Rollback_T>::~ScopeFail()
 {
+    if (m_uncaught_exceptions < 0)
+    {
+        return;
+    }
+
 #ifndef __cpp_constexpr_exceptions
     if !consteval
     {
 #endif
         if (m_uncaught_exceptions < std::uncaught_exceptions())
         {
-            std::invoke(m_rollback);
+            std::invoke(std::move(m_rollback));
         }
 #ifndef __cpp_constexpr_exceptions
     }
 #endif
+}
+
+template <storable_c Rollback_T>
+    requires(std::is_nothrow_invocable_v<Rollback_T>)
+constexpr auto ScopeFail<Rollback_T>::operator()() && noexcept -> void
+{
+    std::invoke(std::move(m_rollback));
+    m_uncaught_exceptions = -1;
 }
 
 template <storable_c Rollback_T>
