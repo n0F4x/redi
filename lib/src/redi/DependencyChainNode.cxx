@@ -2,7 +2,6 @@ module;
 
 #include <cassert>
 #include <cstring>
-#include <format>
 #include <string>
 #include <string_view>
 
@@ -40,7 +39,7 @@ auto DependencyChainNode::format(std::pmr::string& out, const std::size_t capaci
         out.reserve(capacity + name.size());
     }
 
-    out.append(std::format("{}", name));
+    out.append(name);
 }
 
 }   // namespace redi

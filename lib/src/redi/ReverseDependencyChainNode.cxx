@@ -43,7 +43,7 @@ auto ReverseDependencyChainNode::format(
         out.reserve(capacity + name.size());
     }
 
-    out.append(std::format("{}", name));
+    out.append(name);
 }
 
 }   // namespace redi
