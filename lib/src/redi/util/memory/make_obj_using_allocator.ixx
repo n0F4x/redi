@@ -6,6 +6,8 @@ module;
 
 export module redi.util.memory.make_obj_using_allocator;
 
+import redi.util.concepts.specialization_of;
+
 namespace redi::util {
 
 export template <typename T, typename Allocator_T, typename... Args_T>
@@ -14,6 +16,11 @@ export template <typename T, typename Allocator_T, typename... Args_T>
 constexpr auto make_obj_using_allocator(const Allocator_T& allocator, Args_T&&... args)
     -> T
 {
+    /*
+     * Can't return a stack-local variable initialized with `construct_at_using_allocator`
+     * as NRVO is not guaranteed.
+     */
+
     if constexpr (!std::uses_allocator_v<T, Allocator_T>)
     {
         return T(std::forward<Args_T>(args)...);
@@ -32,6 +39,19 @@ constexpr auto make_obj_using_allocator(const Allocator_T& allocator, Args_T&&..
     {
         static_assert(false, "invalid `uses_allocator` specialization");
     }
+}
+
+/*
+ * `std::pair` is weird.
+ * See https://en.cppreference.com/cpp/memory/uses_allocator_construction_args
+ */
+export template <typename T, typename Allocator_T, typename... Args_T>
+    requires specialization_of_c<T, std::pair>
+[[nodiscard]]
+constexpr auto make_obj_using_allocator(const Allocator_T& allocator, Args_T&&... args)
+    -> T
+{
+    return std::make_obj_using_allocator<T>(allocator, std::forward<Args_T>(args)...);
 }
 
 }   // namespace redi::util

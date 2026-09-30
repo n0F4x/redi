@@ -2,8 +2,11 @@ module;
 
 #include <memory>
 #include <type_traits>
+#include <utility>
 
 export module redi.util.memory.construct_at_using_allocator;
+
+import redi.util.concepts.specialization_of;
 
 namespace redi::util {
 
@@ -38,6 +41,25 @@ constexpr auto construct_at_using_allocator(
     {
         static_assert(false, "invalid `uses_allocator` specialization");
     }
+}
+
+/*
+ * `std::pair` is weird.
+ * See https://en.cppreference.com/cpp/memory/uses_allocator_construction_args
+ */
+export template <typename T, typename Allocator_T, typename... Args_T>
+    requires specialization_of_c<T, std::pair>
+constexpr auto construct_at_using_allocator(
+    T* const           address,
+    const Allocator_T& allocator,
+    Args_T&&... args
+) -> T*
+{
+    return std::uninitialized_construct_using_allocator(
+        address,
+        allocator,
+        std::forward<Args_T>(args)...
+    );
 }
 
 }   // namespace redi::util
