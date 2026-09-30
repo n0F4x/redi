@@ -19,7 +19,10 @@ concept represents_entry_builder_dependency_c
            || requires { requires EntryTraits<std::remove_cvref_t<T>>::is_configuration_entry; }))
    || (util::optional_ref_c<T>
        && (std::derived_from<std::remove_const_t<typename T::value_type>, EntryBuilderBase>
-           || requires { requires EntryTraits<T>::is_configuration_entry; }));
+           || requires {
+                  requires EntryTraits<
+                      std::remove_const_t<typename T::value_type>>::is_configuration_entry;
+              }));
 // clang-format on
 
 }   // namespace redi
