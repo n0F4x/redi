@@ -24,5 +24,6 @@ target_sources(${PROJECT_NAME} PUBLIC
         for_each.ixx
         reflection.ixx
         ScopeFail.ixx
+        ScopeSuccess.ixx
         TypeList.ixx
 )

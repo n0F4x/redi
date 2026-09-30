@@ -24,6 +24,7 @@ import redi.util.concepts.specialization_of;
 import redi.util.containers.OptionalRef;
 import redi.util.contracts;
 import redi.util.reflection;
+import redi.util.ScopeSuccess;
 import redi.util.type_traits.arguments_of;
 import redi.util.type_traits.result_of;
 import redi.util.TypeList;
@@ -276,6 +277,9 @@ auto BuildDirector<EntryBuilder_T>::use_function() -> void
         std::format("{} can only be used once", util::name_of<BuildDirector>())
     );
 
+    const util::ScopeSuccess reset_guard{ [&] noexcept -> void { reset(); } };
+
+
     if (const bool success = try_insert_injection<func_T>(); !success)
     {
         return;
@@ -287,8 +291,6 @@ auto BuildDirector<EntryBuilder_T>::use_function() -> void
      */
     resolve_dependencies(func_T);
     resolve_build_dependencies<EntryBuilder_T>();
-
-    reset();
 }
 
 template <entry_builder_c EntryBuilder_T>
@@ -333,6 +335,9 @@ auto BuildDirector<Entry_T>::use_builder() -> void
         std::format("{} can only be used once", util::name_of<BuildDirector>())
     );
 
+    const util::ScopeSuccess reset_guard{ [&] noexcept -> void { reset(); } };
+
+
     if constexpr (std::derived_from<Builder_T, internal::BuildableEntryBuilderBase>)
     {
         BuildDirector<Builder_T> build_director{ *this };
@@ -352,8 +357,6 @@ auto BuildDirector<Entry_T>::use_builder() -> void
          */
         resolve_build_dependencies<Builder_T>();
     }
-
-    reset();
 }
 
 template <auto func_T>

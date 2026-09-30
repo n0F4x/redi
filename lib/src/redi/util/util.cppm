@@ -10,4 +10,5 @@ export import redi.util.contracts;
 export import redi.util.for_each;
 export import redi.util.reflection;
 export import redi.util.ScopeFail;
+export import redi.util.ScopeSuccess;
 export import redi.util.TypeList;
