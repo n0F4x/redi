@@ -96,7 +96,7 @@ public:
         requires std::constructible_from<std::remove_cv_t<T>, T&>
               && std::convertible_to<U&&, std::remove_cv_t<T>>
     [[nodiscard]]
-    constexpr auto value_or(U&& other) const noexcept -> std::remove_cv_t<T>;
+    constexpr auto value_or(U&& other) const -> std::remove_cv_t<T>;
 
     template <internal::and_then_func_c<T> F>
     constexpr auto and_then(F&& func) const -> std::invoke_result_t<F&&, T&>;
@@ -206,7 +206,7 @@ template <typename T>
 template <typename U>
     requires std::constructible_from<std::remove_cv_t<T>, T&>
           && std::convertible_to<U&&, std::remove_cv_t<T>>
-constexpr auto OptionalRef<T>::value_or(U&& other) const noexcept -> std::remove_cv_t<T>
+constexpr auto OptionalRef<T>::value_or(U&& other) const -> std::remove_cv_t<T>
 {
     return has_value() ? *m_handle
                        : static_cast<std::remove_cv_t<T>>(std::forward<U>(other));
