@@ -63,7 +63,7 @@ public:
 
     template <typename Builder_T, typename Self_T>
     [[nodiscard]]
-    auto at(this Self_T&) noexcept -> util::const_like_t<Builder_T, Self_T>&;
+    auto at(this Self_T&) -> util::const_like_t<Builder_T, Self_T>&;
 
 
     template <typename Builder_T>
@@ -240,7 +240,7 @@ auto EntryBuilderContainer::find(this Self_T& self) noexcept
 }
 
 template <typename Builder_T, typename Self_T>
-auto EntryBuilderContainer::at(this Self_T& self) noexcept
+auto EntryBuilderContainer::at(this Self_T& self)
     -> util::const_like_t<Builder_T, Self_T>&
 {
     const util::OptionalRef found_builder{ self.template find<Builder_T>() };
