@@ -25,6 +25,7 @@ import redi.util.containers.MoveOnlyFunction;
 import redi.util.contracts;
 import redi.util.for_each;
 import redi.util.reflection;
+import redi.util.ScopeFail;
 import redi.util.type_traits.arguments_of;
 import redi.util.type_traits.const_like;
 import redi.util.type_traits.forward_like;
@@ -271,6 +272,33 @@ auto EntryBuilderContainer::try_emplace(Args_T&&... args) -> bool
     {
         return false;
     }
+
+    const util::ScopeFail rollback_guard{
+        [&, original_size = m_builders.size()] noexcept -> void
+        {
+            const auto rollback_emplace{
+                [original_size](auto& container) noexcept -> void
+                {
+                    if (container.size() > original_size)
+                    {
+                        container.pop_back();
+                    }
+                },
+            };
+
+            rollback_emplace(m_builders);
+            rollback_emplace(m_entry_hashes);
+            rollback_emplace(m_builder_dependency_entry_hashes);
+            rollback_emplace(m_dependent_builder_entry_hashes);
+            rollback_emplace(m_entry_dependency_hashes);
+            rollback_emplace(m_dependent_entry_hashes);
+#ifdef REDI_DEBUG
+            rollback_emplace(m_entry_names);
+            rollback_emplace(m_builder_names);
+#endif
+        },
+    };
+
 
     m_builders.emplace_back(
         std::in_place_type<ErasedEntryBuilderLambda<Builder_T>>,

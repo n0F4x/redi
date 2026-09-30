@@ -23,6 +23,7 @@ import redi.util.concepts.specialization_of;
 import redi.util.containers.MoveOnlyFunction;
 import redi.util.containers.OptionalRef;
 import redi.util.reflection;
+import redi.util.ScopeFail;
 import redi.util.type_traits.arguments_of;
 import redi.util.type_traits.forward_like;
 import redi.util.type_traits.result_of;
@@ -173,6 +174,30 @@ auto EntryInjectionContainer::try_insert() -> bool
     {
         return false;
     }
+
+    const util::ScopeFail rollback_guard{
+        [this, original_size = m_injections.size()] noexcept -> void
+        {
+            const auto rollback_emplace{
+                [original_size](auto& container) noexcept -> void
+                {
+                    if (container.size() > original_size)
+                    {
+                        container.pop_back();
+                    }
+                },
+            };
+
+            rollback_emplace(m_injections);
+            rollback_emplace(m_builder_hashes);
+            rollback_emplace(m_dependency_hashes);
+            rollback_emplace(m_dependent_builder_hashes);
+#ifdef REDI_DEBUG
+            rollback_emplace(m_builder_names);
+#endif
+        },
+    };
+
 
     m_injections.emplace_back(ErasedEntryInjectionLambda<injection_T>{});
     m_builder_hashes.push_back(util::hash_u64<Builder>());
