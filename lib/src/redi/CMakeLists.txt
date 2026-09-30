@@ -19,7 +19,6 @@ target_sources(${PROJECT_NAME} PUBLIC
         configuration_entry_c.ixx
         CyclicDependencyDetected.ixx
         DependencyChainNode.ixx
-        describes_entry_build_c.ixx
         entry_c.ixx
         entry_builder_c.ixx
         EntryBuilderBase.ixx

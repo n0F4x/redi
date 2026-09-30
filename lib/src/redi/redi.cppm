@@ -8,7 +8,6 @@ export import redi.BuildDirector;
 export import redi.configuration_entry_c;
 export import redi.CyclicDependencyDetected;
 export import redi.DependencyChainNode;
-export import redi.describes_entry_build_c;
 export import redi.entry_builder_c;
 export import redi.entry_c;
 export import redi.EntryBuilderBase;
