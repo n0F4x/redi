@@ -92,10 +92,11 @@ public:
     [[nodiscard]]
     constexpr auto has_value() const noexcept -> bool;
 
-    template <typename U>
-        requires std::convertible_to<U&&, T&>
+    template <typename U = std::remove_cv_t<T>>
+        requires std::constructible_from<std::remove_cv_t<T>, T&>
+              && std::convertible_to<U&&, std::remove_cv_t<T>>
     [[nodiscard]]
-    constexpr auto value_or(U&& other) const noexcept -> T&;
+    constexpr auto value_or(U&& other) const noexcept -> std::remove_cv_t<T>;
 
     template <internal::and_then_func_c<T> F>
     constexpr auto and_then(F&& func) const -> std::invoke_result_t<F&&, T&>;
@@ -203,14 +204,12 @@ constexpr auto OptionalRef<T>::has_value() const noexcept -> bool
 template <typename T>
     requires(!std::is_reference_v<T>)
 template <typename U>
-    requires std::convertible_to<U&&, T&>
-constexpr auto OptionalRef<T>::value_or(U&& other) const noexcept -> T&
+    requires std::constructible_from<std::remove_cv_t<T>, T&>
+          && std::convertible_to<U&&, std::remove_cv_t<T>>
+constexpr auto OptionalRef<T>::value_or(U&& other) const noexcept -> std::remove_cv_t<T>
 {
-    if (has_value())
-    {
-        return *m_handle;
-    }
-    return std::forward<U>(other);
+    return has_value() ? *m_handle
+                       : static_cast<std::remove_cv_t<T>>(std::forward<U>(other));
 }
 
 template <typename T>

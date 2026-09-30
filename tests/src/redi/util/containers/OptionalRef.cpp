@@ -1,4 +1,6 @@
 #include <optional>
+#include <type_traits>
+#include <utility>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -73,6 +75,48 @@ TEST_CASE("redi::util::OptionalRef")
             };
 
             STATIC_REQUIRE(result.has_value() == false);
+        }
+    }
+
+    SECTION("value_or")
+    {
+        SECTION("returns by value, like `std::optional<T&>`")
+        {
+            STATIC_REQUIRE(
+                std::is_same_v<decltype(std::declval<OptionalRef<int>>().value_or(0)), int>
+            );
+            STATIC_REQUIRE(
+                std::is_same_v<
+                    decltype(std::declval<OptionalRef<const int>>().value_or(0)),
+                    int>
+            );
+        }
+
+        SECTION("with value")
+        {
+            constexpr static int             value{ 2 };
+            constexpr OptionalRef<const int> optional{ value };
+
+            STATIC_REQUIRE(optional.value_or(3) == value);
+        }
+
+        SECTION("without value")
+        {
+            constexpr OptionalRef<const int> optional{};
+
+            STATIC_REQUIRE(optional.value_or(3) == 3);
+        }
+
+        SECTION("result is a copy of the referenced value")
+        {
+            int                    value{ 2 };
+            const OptionalRef<int> optional{ value };
+
+            int copy{ optional.value_or(0) };
+            ++copy;
+
+            REQUIRE(value == 2);
+            REQUIRE(copy == 3);
         }
     }
 }
