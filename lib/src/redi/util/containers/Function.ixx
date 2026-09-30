@@ -1,5 +1,6 @@
 module;
 
+#include <algorithm>
 #include <concepts>
 #include <cstddef>
 #include <format>
