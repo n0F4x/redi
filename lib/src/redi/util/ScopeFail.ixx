@@ -20,7 +20,6 @@ public:
     constexpr explicit(false) ScopeFail(Rollback_T&& rollback) noexcept
         requires(std::is_nothrow_constructible_v<Rollback_T, Rollback_T&&>);
     ScopeFail(const ScopeFail&) = delete;
-    ScopeFail(ScopeFail&&)      = default;
     constexpr ~ScopeFail();
 
     constexpr auto operator()() && noexcept -> void;

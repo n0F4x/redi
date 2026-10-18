@@ -20,7 +20,6 @@ public:
     constexpr explicit(false) ScopeSuccess(CleanUp_T&& clean_up) noexcept
         requires(std::is_nothrow_constructible_v<CleanUp_T, CleanUp_T&&>);
     ScopeSuccess(const ScopeSuccess&) = delete;
-    ScopeSuccess(ScopeSuccess&&)      = default;
     constexpr ~ScopeSuccess();
 
 private:
