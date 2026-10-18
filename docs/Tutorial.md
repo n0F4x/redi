@@ -34,7 +34,7 @@ struct Entry {
 
 template <>
 struct redi::EntryTraits<Entry> {
-    auto describe_build(redi::BuildDirector<Entry>& director) -> void 
+    static auto describe_build(redi::BuildDirector<Entry>& director) -> void 
     {
         director.use_dependencies<OtherEntry&>();   
     }
@@ -46,13 +46,11 @@ struct redi::EntryTraits<Entry> {
 Note that the build director also accepts a free function.
 
 ```c++
-struct Entry : redi::BuildableEntry<Entry, describe_build> {};
-
 auto make_entry(OtherEntry& other_entry) -> Entry;
 
 template <>
 struct redi::EntryTraits<Entry> {
-    auto describe_build(redi::BuildDirector<Entry>& director) -> void 
+    static auto describe_build(redi::BuildDirector<Entry>& director) -> void 
     {
         director.use_function<make_entry>();   
     }
@@ -65,15 +63,13 @@ Some entries require more setup than others.
 Each entry type might decide to be built by a builder type.
 
 ```c++
-struct Entry {};
-
 struct EntryBuilder : redi::EntryBuilderBase {
     auto build(OtherEntry& other_entry) -> Entry;
 };
 
 template <>
 struct redi::EntryTraits<Entry> {
-    auto describe_build(redi::BuildDirector<Entry>& director) -> void
+    static auto describe_build(redi::BuildDirector<Entry>& director) -> void
     {
         director.use_builder<EntryBuilder>();
     }
