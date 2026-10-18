@@ -20,7 +20,6 @@ import redi.Registry;
 import redi.represents_entry_builder_dependency_c;
 import redi.represents_entry_dependency_c;
 import redi.util.concepts.function_pointer;
-import redi.util.concepts.specialization_of;
 import redi.util.containers.OptionalRef;
 import redi.util.contracts;
 import redi.util.reflection;
@@ -173,8 +172,7 @@ auto BuildDirectorBase::reset() noexcept -> void
 }
 
 template <typename T>
-concept represents_optional_dependency_c
-    = util::specialization_of_c<T, util::OptionalRef>;
+concept represents_optional_dependency_c = util::optional_ref_c<T>;
 
 template <auto injection_T>
 auto BuildDirectorBase::try_insert_injection() const -> bool

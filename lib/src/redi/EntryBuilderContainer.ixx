@@ -18,7 +18,6 @@ export module redi.EntryBuilderContainer;
 import redi.EntryBuilderBase;
 import redi.strip_dependency_t;
 import redi.Registry;
-import redi.util.concepts.specialization_of;
 import redi.util.containers.OptionalRef;
 import redi.util.containers.MoveOnlyFunction;
 import redi.util.contracts;
@@ -133,7 +132,7 @@ auto fetch_dependency(EntryBuilderContainer& builders, Registry& registry) -> De
 
     if constexpr (std::derived_from<StrippedDependency, EntryBuilderBase>)
     {
-        if constexpr (util::specialization_of_c<Dependency_T, util::OptionalRef>)
+        if constexpr (util::optional_ref_c<Dependency_T>)
         {
             return builders.find<StrippedDependency>();
         }
@@ -144,7 +143,7 @@ auto fetch_dependency(EntryBuilderContainer& builders, Registry& registry) -> De
     }
     else
     {
-        if constexpr (util::specialization_of_c<Dependency_T, util::OptionalRef>)
+        if constexpr (util::optional_ref_c<Dependency_T>)
         {
             return registry.find<StrippedDependency>();
         }
