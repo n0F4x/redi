@@ -5,6 +5,7 @@ module;
 #include <cstdint>
 #include <memory_resource>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -14,11 +15,9 @@ module;
 
 export module redi.EntryBuilderContainer;
 
-import redi.DependencyChainNode;
 import redi.EntryBuilderBase;
 import redi.strip_dependency_t;
 import redi.Registry;
-import redi.ReverseDependencyChainNode;
 import redi.util.concepts.specialization_of;
 import redi.util.containers.OptionalRef;
 import redi.util.containers.MoveOnlyFunction;
@@ -80,13 +79,13 @@ public:
     ) && -> void;
 
 private:
+    struct BuildOrderGraph;
+
+
     std::pmr::vector<ErasedEntryBuilder>         m_builders;
     std::pmr::vector<uint64_t>                   m_entry_hashes;
     std::pmr::vector<std::pmr::vector<uint64_t>> m_builder_dependency_entry_hashes;
-    std::pmr::vector<std::optional<std::pmr::vector<uint64_t>>>
-                                                 m_dependent_builder_entry_hashes;
     std::pmr::vector<std::pmr::vector<uint64_t>> m_entry_dependency_hashes;
-    std::pmr::vector<std::optional<std::pmr::vector<uint64_t>>> m_dependent_entry_hashes;
 #ifdef REDI_DEBUG
     std::pmr::vector<std::pmr::string> m_entry_names;
     std::pmr::vector<std::pmr::string> m_builder_names;
@@ -96,67 +95,30 @@ private:
     [[nodiscard]]
     auto try_index_of_builder(uint64_t hash) const noexcept -> std::optional<std::size_t>;
 
-    auto sort() -> void;
+    [[nodiscard]]
+    auto make_build_order_graph(
+        const std::pmr::polymorphic_allocator<>& allocator,
+        std::pmr::memory_resource&               transient_memory_resource
+    ) const -> BuildOrderGraph;
 
     [[nodiscard]]
+    static auto sort_topologically(
+        BuildOrderGraph&           graph,
+        std::pmr::memory_resource& transient_memory_resource
+    ) -> std::pmr::vector<std::size_t>;
+
+#ifdef REDI_DEBUG
+    [[nodiscard]]
     auto check_cyclic_dependencies(
+        const BuildOrderGraph&     graph,
         std::pmr::memory_resource& transient_memory_resource
     ) const -> bool;
 
-    auto sort_based_on_builder_dependencies() -> void;
-    auto sort_based_on_entry_dependencies() -> void;
-
-    auto collect_dependent_builder_hashes() -> void;
-    auto collect_dependent_entry_hashes() -> void;
-
-    auto push_down_builder_dependencies_of(std::size_t index) -> void;
-    auto bubble_up_entry_dependencies_of(std::size_t index) -> void;
-
-    [[nodiscard]]
-    auto check_entry_cyclic_dependencies(
-        std::size_t                       builder_index,
-        const std::pmr::vector<uint64_t>& reversed_hash_cache,
-        std::pmr::vector<uint64_t>&       hash_cache,
-        std::pmr::memory_resource&        transient_memory_resource
-    ) const -> bool;
-    [[nodiscard]]
-    auto check_entry_cyclic_dependencies(
-        std::size_t                       builder_index,
-        const DependencyChainNode&        dependency_chain,
-        std::pmr::vector<uint64_t>&       hash_cache,
-        std::size_t                       root_builder_index,
-        const std::pmr::vector<uint64_t>& reversed_hash_cache,
-        std::pmr::memory_resource&        transient_memory_resource
-    ) const -> bool;
-    [[nodiscard]]
-    auto check_builder_cyclic_dependencies(
-        std::size_t                 builder_index,
-        std::pmr::vector<uint64_t>& hash_cache,
-        std::pmr::memory_resource&  transient_memory_resource
-    ) const -> bool;
-    [[nodiscard]]
-    auto check_builder_cyclic_dependencies(
-        std::size_t                       builder_index,
-        const ReverseDependencyChainNode& dependency_chain,
-        std::pmr::vector<uint64_t>&       hash_cache,
-        std::pmr::memory_resource&        transient_memory_resource
-    ) const -> bool;
-
-    [[nodiscard]]
-    auto path_as_string_to_builder_from(
-        std::size_t                              source_builder_index,
-        uint64_t                                 destination_builder_entry_hash,
-        const std::pmr::polymorphic_allocator<>& allocator,
-        std::pmr::memory_resource&               transient_memory_resource
-    ) const -> std::pmr::string;
-    [[nodiscard]]
-    auto path_as_string_to_builder_from(
-        uint64_t                                 builder_entry_hash,
-        uint64_t                                 destination_builder_entry_hash,
-        const DependencyChainNode&               dependency_chain,
-        std::pmr::vector<uint64_t>&              hash_cache,
-        const std::pmr::polymorphic_allocator<>& allocator
-    ) const -> std::optional<std::pmr::string>;
+    auto report_cyclic_dependency(
+        std::span<const std::size_t> cycle,
+        std::pmr::memory_resource&   transient_memory_resource
+    ) const -> void;
+#endif
 };
 
 }   // namespace redi
@@ -289,9 +251,7 @@ auto EntryBuilderContainer::try_emplace(Args_T&&... args) -> bool
             rollback_emplace(m_builders);
             rollback_emplace(m_entry_hashes);
             rollback_emplace(m_builder_dependency_entry_hashes);
-            rollback_emplace(m_dependent_builder_entry_hashes);
             rollback_emplace(m_entry_dependency_hashes);
-            rollback_emplace(m_dependent_entry_hashes);
 #ifdef REDI_DEBUG
             rollback_emplace(m_entry_names);
             rollback_emplace(m_builder_names);
@@ -313,13 +273,11 @@ auto EntryBuilderContainer::try_emplace(Args_T&&... args) -> bool
     builder_dependency_hashes.reserve(
         util::arguments_of_t<decltype(&Builder_T::build)>::size()
     );
-    m_dependent_builder_entry_hashes.emplace_back();
     std::pmr::vector<uint64_t>& entry_dependency_hashes
         = m_entry_dependency_hashes.emplace_back();
     entry_dependency_hashes.reserve(
         util::arguments_of_t<decltype(&Builder_T::build)>::size()
     );
-    m_dependent_entry_hashes.emplace_back();
     util::for_each(
         util::arguments_of_t<decltype(&Builder_T::build)>{},
         [&builder_dependency_hashes,

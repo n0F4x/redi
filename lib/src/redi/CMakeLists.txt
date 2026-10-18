@@ -5,7 +5,6 @@ target_sources(${PROJECT_NAME} PRIVATE
         EntryBuilderContainer.cxx
         EntryInjectionContainer.cxx
         RegistryBuilder.cxx
-        ReverseDependencyChainNode.cxx
 )
 
 target_sources(${PROJECT_NAME} PUBLIC
@@ -31,6 +30,5 @@ target_sources(${PROJECT_NAME} PUBLIC
         RegistryBuilder.ixx
         represents_entry_builder_dependency_c.ixx
         represents_entry_dependency_c.ixx
-        ReverseDependencyChainNode.ixx
         strip_dependency_t.ixx
 )

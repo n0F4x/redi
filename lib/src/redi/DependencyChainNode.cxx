@@ -1,9 +1,9 @@
 module;
 
 #include <cassert>
+#include <cstdint>
 #include <cstring>
 #include <string>
-#include <string_view>
 
 module redi.DependencyChainNode;
 

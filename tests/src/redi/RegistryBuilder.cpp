@@ -215,6 +215,56 @@ struct CyclicCreateEntryB::Builder
     }
 };
 
+struct ConflictingMixedDependenciesEntryA : BuildableEntry {
+    struct Builder : EntryBuilderBase {
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        constexpr static auto build() noexcept -> ConflictingMixedDependenciesEntryA
+        {
+            return ConflictingMixedDependenciesEntryA{};
+        }
+    };
+};
+
+struct ConflictingMixedDependenciesEntryB : BuildableEntry {
+    struct Builder : EntryBuilderBase {
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        constexpr static auto build() noexcept -> ConflictingMixedDependenciesEntryB
+        {
+            return ConflictingMixedDependenciesEntryB{};
+        }
+    };
+};
+
+struct ConflictingMixedDependenciesEntryC : BuildableEntry {
+    struct Builder : EntryBuilderBase {
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        constexpr static auto build(
+            ConflictingMixedDependenciesEntryB&,
+            const ConflictingMixedDependenciesEntryA::Builder&
+        ) noexcept -> ConflictingMixedDependenciesEntryC
+        {
+            return ConflictingMixedDependenciesEntryC{};
+        }
+    };
+};
+
+struct ConflictingMixedDependenciesEntryD : BuildableEntry {
+    struct Builder : EntryBuilderBase {
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        constexpr static auto build(
+            ConflictingMixedDependenciesEntryA&,
+            const ConflictingMixedDependenciesEntryB::Builder&
+        ) noexcept -> ConflictingMixedDependenciesEntryD
+        {
+            return ConflictingMixedDependenciesEntryD{};
+        }
+    };
+};
+
 struct EntryDependencyA {};
 
 struct EntryDependencyB : BuildableEntry {
@@ -318,6 +368,42 @@ struct DependencyInversionEntryA::Builder : EntryBuilderBase {
     {
         return DependencyInversionEntryA{};
     }
+};
+
+struct EntryAndBuilderSharedDependencyEntryA : BuildableEntry {
+    struct Builder : EntryBuilderBase {
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        constexpr static auto build() noexcept -> EntryAndBuilderSharedDependencyEntryA
+        {
+            return EntryAndBuilderSharedDependencyEntryA{};
+        }
+    };
+};
+
+struct EntryAndBuilderSharedDependencyEntryB : BuildableEntry {
+    struct Builder : EntryBuilderBase {
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        constexpr static auto build(EntryAndBuilderSharedDependencyEntryA&) noexcept
+            -> EntryAndBuilderSharedDependencyEntryB
+        {
+            return EntryAndBuilderSharedDependencyEntryB{};
+        }
+    };
+};
+
+struct EntryAndBuilderSharedDependencyEntryC : BuildableEntry {
+    struct Builder : EntryBuilderBase {
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        constexpr static auto build(
+            const EntryAndBuilderSharedDependencyEntryA::Builder&
+        ) noexcept -> EntryAndBuilderSharedDependencyEntryC
+        {
+            return EntryAndBuilderSharedDependencyEntryC{};
+        }
+    };
 };
 
 struct BuilderOptionalEntryDependencyA : ConfigurationEntry {};
@@ -484,6 +570,19 @@ TEST_CASE(type_name)
                 CyclicDependencyDetected
             );
         }
+
+        SECTION("conflicting entry and builder dependencies across builders")
+        {
+            RegistryBuilder registry_builder;
+
+            registry_builder.register_entry<ConflictingMixedDependenciesEntryC>();
+            registry_builder.register_entry<ConflictingMixedDependenciesEntryD>();
+
+            REQUIRE_THROWS_AS(
+                std::move(registry_builder).build(transient_memory_resource),
+                CyclicDependencyDetected
+            );
+        }
     }
 #endif
 
@@ -639,7 +738,7 @@ TEST_CASE(type_name)
         }
     }
 
-    SECTION("entryB -> entryA -> builderB -> builderA)")
+    SECTION("entryB -> entryA -> builderB -> builderA")
     {
         SECTION("base")
         {
@@ -651,6 +750,35 @@ TEST_CASE(type_name)
 
             REQUIRE(registry.contains<DependencyInversionEntryA>());
             REQUIRE(registry.contains<DependencyInversionEntryB>());
+        }
+    }
+
+    SECTION("entryB -> entryA; entryC -> builderA")
+    {
+        SECTION("base")
+        {
+            RegistryBuilder registry_builder;
+            registry_builder.register_entry<EntryAndBuilderSharedDependencyEntryB>();
+            registry_builder.register_entry<EntryAndBuilderSharedDependencyEntryC>();
+            Registry registry
+                = std::move(registry_builder).build(transient_memory_resource);
+
+            REQUIRE(registry.contains<EntryAndBuilderSharedDependencyEntryB>());
+            REQUIRE(registry.contains<EntryAndBuilderSharedDependencyEntryA>());
+            REQUIRE(registry.contains<EntryAndBuilderSharedDependencyEntryC>());
+        }
+
+        SECTION("reordered")
+        {
+            RegistryBuilder registry_builder;
+            registry_builder.register_entry<EntryAndBuilderSharedDependencyEntryC>();
+            registry_builder.register_entry<EntryAndBuilderSharedDependencyEntryB>();
+            Registry registry
+                = std::move(registry_builder).build(transient_memory_resource);
+
+            REQUIRE(registry.contains<EntryAndBuilderSharedDependencyEntryB>());
+            REQUIRE(registry.contains<EntryAndBuilderSharedDependencyEntryA>());
+            REQUIRE(registry.contains<EntryAndBuilderSharedDependencyEntryC>());
         }
     }
 }

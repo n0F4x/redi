@@ -20,5 +20,4 @@ export import redi.Registry;
 export import redi.RegistryBuilder;
 export import redi.represents_entry_builder_dependency_c;
 export import redi.represents_entry_dependency_c;
-export import redi.ReverseDependencyChainNode;
 export import redi.strip_dependency_t;
