@@ -1,7 +1,6 @@
 module;
 
 #include <algorithm>
-#include <concepts>
 #include <cstdint>
 #include <functional>
 #include <memory_resource>
@@ -12,9 +11,9 @@ module;
 export module redi.EntryInjectionContainer;
 
 import redi.DependencyChainNode;
-import redi.EntryBuilderBase;
 import redi.EntryBuilderContainer;
 import redi.EntryTraits;
+import redi.opted_into_entry_builder_concept_c;
 import redi.strip_dependency_t;
 import redi.Registry;
 import redi.util.concepts.function;
@@ -124,7 +123,7 @@ struct ErasedEntryInjectionLambda {
     {
         using StrippedDependency = strip_dependency_t<Dependency_T>;
 
-        if constexpr (std::derived_from<StrippedDependency, EntryBuilderBase>)
+        if constexpr (opted_into_entry_builder_concept_c<StrippedDependency>)
         {
             if constexpr (util::optional_ref_c<Dependency_T>)
             {
