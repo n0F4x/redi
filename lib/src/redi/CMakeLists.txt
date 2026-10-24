@@ -26,6 +26,7 @@ target_sources(${PROJECT_NAME} PUBLIC
         EntryInjectionContainer.ixx
         EntryTraits.ixx
         ErasedEntry.ixx
+        opted_into_entry_builder_concept_c.ixx
         Registry.ixx
         RegistryBuilder.ixx
         represents_entry_builder_dependency_c.ixx

@@ -246,7 +246,7 @@ auto BuildDirectorBase::resolve_dependency() const -> void
     {
         using StrippedDependency = std::remove_cvref_t<Dependency_T>;
 
-        if constexpr (std::derived_from<StrippedDependency, EntryBuilderBase>)
+        if constexpr (opted_into_entry_builder_concept_c<StrippedDependency>)
         {
             build_builder<StrippedDependency>();
         }

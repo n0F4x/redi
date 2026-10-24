@@ -16,6 +16,7 @@ export import redi.EntryBuilderFailedError;
 export import redi.EntryInjectionContainer;
 export import redi.EntryTraits;
 export import redi.ErasedEntry;
+export import redi.opted_into_entry_builder_concept_c;
 export import redi.Registry;
 export import redi.RegistryBuilder;
 export import redi.represents_entry_builder_dependency_c;

@@ -15,7 +15,7 @@ module;
 
 export module redi.EntryBuilderContainer;
 
-import redi.EntryBuilderBase;
+import redi.opted_into_entry_builder_concept_c;
 import redi.strip_dependency_t;
 import redi.Registry;
 import redi.util.containers.OptionalRef;
@@ -130,7 +130,7 @@ auto fetch_dependency(EntryBuilderContainer& builders, Registry& registry) -> De
 {
     using StrippedDependency = strip_dependency_t<Dependency_T>;
 
-    if constexpr (std::derived_from<StrippedDependency, EntryBuilderBase>)
+    if constexpr (opted_into_entry_builder_concept_c<StrippedDependency>)
     {
         if constexpr (util::optional_ref_c<Dependency_T>)
         {
@@ -283,7 +283,7 @@ auto EntryBuilderContainer::try_emplace(Args_T&&... args) -> bool
          &entry_dependency_hashes]<typename Dependency_T> -> void
         {
             using StrippedDependency = strip_dependency_t<Dependency_T>;
-            if constexpr (std::derived_from<StrippedDependency, EntryBuilderBase>)
+            if constexpr (opted_into_entry_builder_concept_c<StrippedDependency>)
             {
                 builder_dependency_hashes.push_back(
                     util::hash_u64<
