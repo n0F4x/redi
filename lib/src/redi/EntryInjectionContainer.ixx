@@ -13,6 +13,7 @@ export module redi.EntryInjectionContainer;
 import redi.DependencyChainNode;
 import redi.EntryBuilderContainer;
 import redi.EntryTraits;
+import redi.opted_into_configuration_entry_concept_c;
 import redi.opted_into_entry_builder_concept_c;
 import redi.strip_dependency_t;
 import redi.Registry;
@@ -134,9 +135,7 @@ struct ErasedEntryInjectionLambda {
                 return builders.at<StrippedDependency>();
             }
         }
-        else if constexpr (
-            requires { requires EntryTraits<StrippedDependency>::is_configuration_entry; }
-        )
+        else if constexpr (opted_into_configuration_entry_concept_c<StrippedDependency>)
         {
             if constexpr (util::optional_ref_c<Dependency_T>)
             {

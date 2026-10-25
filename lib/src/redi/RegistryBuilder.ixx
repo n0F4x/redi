@@ -10,6 +10,7 @@ import redi.entry_c;
 import redi.EntryBuilderContainer;
 import redi.EntryInjectionContainer;
 import redi.EntryTraits;
+import redi.opted_into_built_entry_concept_c;
 import redi.Registry;
 
 namespace redi {
@@ -73,9 +74,7 @@ RegistryBuilder::RegistryBuilder(
 template <entry_c Entry_T, typename Self_T>
 auto RegistryBuilder::register_entry(this Self_T&& self) -> Self_T&&
 {
-    if constexpr (requires(BuildDirector<Entry_T> build_director) {
-                      EntryTraits<Entry_T>::describe_build(build_director);
-                  })
+    if constexpr (opted_into_built_entry_concept_c<Entry_T>)
     {
         BuildDirector<Entry_T> build_director{
             self.RegistryBuilder::m_injections,

@@ -5,9 +5,9 @@ module;
 
 export module redi.entry_builder_c;
 
-import redi.BuildableEntryBuilderBase;
 import redi.entry_c;
 import redi.EntryBuilderBase;
+import redi.opted_into_built_entry_builder_concept_c;
 import redi.opted_into_entry_builder_concept_c;
 import redi.represents_entry_dependency_c;
 import redi.util.concepts.storable;
@@ -61,11 +61,11 @@ consteval auto is_entry_builder(auto (Builder_T::*)(Dependencies_T...) const&&->
 }
 
 export template <typename T>
-concept entry_builder_c = util::storable_c<T>
-                       && opted_into_entry_builder_concept_c<T>
+concept entry_builder_c = opted_into_entry_builder_concept_c<T>   //
+                       && util::storable_c<T>
                        && requires { requires is_entry_builder(&T::build); }
-                       && (std::default_initializable<T>
-                           || std::derived_from<T, internal::BuildableEntryBuilderBase>);
+                       && (std::default_initializable<T>   //
+                           || opted_into_built_entry_builder_concept_c<T>);
 
 export template <typename T>
 concept decays_to_entry_builder_c = entry_builder_c<std::decay_t<T>>;

@@ -16,6 +16,7 @@ import redi.EntryBuilderBase;
 import redi.EntryBuilderContainer;
 import redi.EntryInjectionContainer;
 import redi.EntryTraits;
+import redi.opted_into_built_entry_builder_concept_c;
 import redi.opted_into_entry_builder_concept_c;
 import redi.Registry;
 import redi.represents_entry_builder_dependency_c;
@@ -33,6 +34,15 @@ namespace redi {
 
 export template <typename>
 class BuildDirector;
+
+namespace internal {
+
+export template <typename T>
+concept opted_into_built_entry_concept_c = requires(BuildDirector<T> build_director) {
+    EntryTraits<T>::describe_build(build_director);
+};
+
+}   // namespace internal
 
 class BuildDirectorBase {
 public:
@@ -190,7 +200,7 @@ auto BuildDirectorBase::try_emplace_builder() const -> bool
 template <typename EntryBuilder_T>
 auto BuildDirectorBase::build_builder() const -> void
 {
-    if constexpr (std::derived_from<EntryBuilder_T, internal::BuildableEntryBuilderBase>)
+    if constexpr (opted_into_built_entry_builder_concept_c<EntryBuilder_T>)
     {
         BuildDirector<EntryBuilder_T> build_director{
             *m_injection_container,
@@ -213,9 +223,7 @@ auto BuildDirectorBase::build_entry() const -> void
     PRECOND(m_builder_container != nullptr);
     PRECOND(m_registry != nullptr);
 
-    if constexpr (requires(BuildDirector<Entry_T> build_director) {
-                      EntryTraits<Entry_T>::describe_build(build_director);
-                  })
+    if constexpr (internal::opted_into_built_entry_concept_c<Entry_T>)
     {
         BuildDirector<Entry_T> build_director{
             *m_injection_container,
@@ -337,7 +345,7 @@ auto BuildDirector<Entry_T>::use_builder() -> void
     const util::ScopeSuccess reset_guard{ [&] noexcept -> void { reset(); } };
 
 
-    if constexpr (std::derived_from<Builder_T, internal::BuildableEntryBuilderBase>)
+    if constexpr (opted_into_built_entry_builder_concept_c<Builder_T>)
     {
         BuildDirector<Builder_T> build_director{ *this };
 

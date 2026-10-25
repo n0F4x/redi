@@ -26,6 +26,10 @@ target_sources(${PROJECT_NAME} PUBLIC
         EntryInjectionContainer.ixx
         EntryTraits.ixx
         ErasedEntry.ixx
+        opted_into_built_entry_builder_concept_c.ixx
+        opted_into_built_entry_concept_c.ixx
+        opted_into_configuration_entry_concept_c.ixx
+        opted_into_entry_concept_c.ixx
         opted_into_entry_builder_concept_c.ixx
         Registry.ixx
         RegistryBuilder.ixx
