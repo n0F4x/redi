@@ -9,11 +9,9 @@ module;
 
 export module redi.BuildDirector;
 
-import redi.BuildableEntryBuilderBase;
 import redi.entry_c;
-import redi.entry_builder_c;
-import redi.EntryBuilderBase;
 import redi.EntryBuilderContainer;
+import redi.EntryBuilderTag;
 import redi.EntryInjectionContainer;
 import redi.EntryTraits;
 import redi.opted_into_built_entry_builder_concept_c;
@@ -22,6 +20,7 @@ import redi.Registry;
 import redi.represents_entry_builder_dependency_c;
 import redi.represents_entry_dependency_c;
 import redi.util.concepts.function_pointer;
+import redi.util.concepts.storable;
 import redi.util.containers.OptionalRef;
 import redi.util.contracts;
 import redi.util.reflection;
@@ -41,6 +40,62 @@ export template <typename T>
 concept opted_into_built_entry_concept_c = requires(BuildDirector<T> build_director) {
     EntryTraits<T>::describe_build(build_director);
 };
+
+template <typename... Dependencies_T, typename Entry_T>
+consteval auto is_entry_builder(auto (*)(Dependencies_T...)->Entry_T) -> bool
+{
+    return (represents_entry_dependency_c<Dependencies_T> && ...) && entry_c<Entry_T>;
+}
+
+template <typename Builder_T, typename... Dependencies_T, typename Entry_T>
+consteval auto is_entry_builder(auto (Builder_T::*)(Dependencies_T...)->Entry_T) -> bool
+{
+    return (represents_entry_dependency_c<Dependencies_T> && ...) && entry_c<Entry_T>;
+}
+
+template <typename Builder_T, typename... Dependencies_T, typename Entry_T>
+consteval auto is_entry_builder(auto (Builder_T::*)(Dependencies_T...) const->Entry_T)
+    -> bool
+{
+    return (represents_entry_dependency_c<Dependencies_T> && ...) && entry_c<Entry_T>;
+}
+
+template <typename Builder_T, typename... Dependencies_T, typename Entry_T>
+consteval auto is_entry_builder(auto (Builder_T::*)(Dependencies_T...) &->Entry_T)
+    -> bool = delete;
+
+template <typename Builder_T, typename... Dependencies_T, typename Entry_T>
+consteval auto is_entry_builder(auto (Builder_T::*)(Dependencies_T...) const&->Entry_T)
+    -> bool
+{
+    return (represents_entry_dependency_c<Dependencies_T> && ...) && entry_c<Entry_T>;
+}
+
+template <typename Builder_T, typename... Dependencies_T, typename Entry_T>
+consteval auto is_entry_builder(auto (Builder_T::*)(Dependencies_T...) &&->Entry_T)
+    -> bool
+{
+    return (represents_entry_dependency_c<Dependencies_T> && ...) && entry_c<Entry_T>;
+}
+
+template <typename Builder_T, typename... Dependencies_T, typename Entry_T>
+consteval auto is_entry_builder(auto (Builder_T::*)(Dependencies_T...) const&&->Entry_T)
+    -> bool
+{
+    return (represents_entry_dependency_c<Dependencies_T> && ...) && entry_c<Entry_T>;
+}
+
+template <typename T>
+concept describes_build_c
+    = requires(BuildDirector<T>& build_director) { describe_build(build_director); };
+
+export template <typename T>
+concept entry_builder_c = opted_into_entry_builder_concept_c<T>
+                       && util::storable_c<T>
+                       && requires { requires is_entry_builder(&T::build); }
+                       && (opted_into_built_entry_builder_concept_c<T>   //
+                               ? describes_build_c<T>
+                               : std::default_initializable<T>);
 
 }   // namespace internal
 
@@ -93,10 +148,14 @@ template <typename T, typename EntryBuilder_T>
 concept entry_builder_maker_function_pointer_c
     = is_entry_builder_maker_function_pointer_v<EntryBuilder_T, T>;
 
-template <entry_builder_c EntryBuilder_T>
+template <opted_into_entry_builder_concept_c EntryBuilder_T>
 class BuildDirector<EntryBuilder_T> : public BuildDirectorBase {
 public:
-    using BuildDirectorBase::BuildDirectorBase;
+    explicit BuildDirector(
+        EntryInjectionContainer& injection_container,
+        EntryBuilderContainer&   builder_container,
+        Registry&                registry
+    );
 
     template <typename T>
         requires(!std::is_same_v<T, EntryBuilder_T>)
@@ -117,8 +176,8 @@ private:
 };
 
 template <typename T, typename Entry_T>
-concept builds_entry_c
-    = entry_builder_c<T> && std::same_as<util::result_of_t<decltype(&T::build)>, Entry_T>;
+concept builds_entry_c = internal::entry_builder_c<T>
+                      && std::same_as<util::result_of_t<decltype(&T::build)>, Entry_T>;
 
 template <typename Entry_T, typename FuncPtr_T>
 constexpr bool is_entry_maker_function_pointer_v{ false };
@@ -208,7 +267,7 @@ auto BuildDirectorBase::build_builder() const -> void
             *m_registry,
         };
 
-        describe_build(internal::BuildableEntryBuilderBase{}, build_director);
+        describe_build(build_director);
     }
     else
     {
@@ -266,15 +325,27 @@ auto BuildDirectorBase::resolve_dependency() const -> void
     }
 }
 
-template <entry_builder_c EntryBuilder_T>
+template <opted_into_entry_builder_concept_c EntryBuilder_T>
+BuildDirector<EntryBuilder_T>::BuildDirector(
+    EntryInjectionContainer& injection_container,
+    EntryBuilderContainer&   builder_container,
+    Registry&                registry
+)
+    : BuildDirectorBase{ injection_container, builder_container, registry }
+{
+    static_assert(internal::entry_builder_c<EntryBuilder_T>);
+}
+
+template <opted_into_entry_builder_concept_c EntryBuilder_T>
 template <typename T>
     requires(!std::is_same_v<T, EntryBuilder_T>)
 BuildDirector<EntryBuilder_T>::BuildDirector(const BuildDirector<T>& other)
     : BuildDirectorBase{ other }
 {
+    static_assert(internal::entry_builder_c<EntryBuilder_T>);
 }
 
-template <entry_builder_c EntryBuilder_T>
+template <opted_into_entry_builder_concept_c EntryBuilder_T>
 template <entry_builder_maker_function_pointer_c<EntryBuilder_T> auto func_T>
     requires(func_T != nullptr)
 auto BuildDirector<EntryBuilder_T>::use_function() -> void
@@ -300,7 +371,7 @@ auto BuildDirector<EntryBuilder_T>::use_function() -> void
     resolve_build_dependencies<EntryBuilder_T>();
 }
 
-template <entry_builder_c EntryBuilder_T>
+template <opted_into_entry_builder_concept_c EntryBuilder_T>
 template <typename... Dependencies_T>
     requires(represents_entry_builder_dependency_c<Dependencies_T> && ...)
          && std::constructible_from<EntryBuilder_T, Dependencies_T...>
@@ -316,7 +387,7 @@ auto BuildDirector<EntryBuilder_T>::use_dependencies() -> void
     use_function<function>();
 }
 
-template <entry_builder_c EntryBuilder_T>
+template <opted_into_entry_builder_concept_c EntryBuilder_T>
 template <typename... Dependencies_T>
 auto BuildDirector<EntryBuilder_T>::resolve_dependencies(
     auto (*)(Dependencies_T...)->EntryBuilder_T
@@ -349,7 +420,7 @@ auto BuildDirector<Entry_T>::use_builder() -> void
     {
         BuildDirector<Builder_T> build_director{ *this };
 
-        describe_build(internal::BuildableEntryBuilderBase{}, build_director);
+        describe_build(build_director);
     }
     else
     {
@@ -374,7 +445,9 @@ template <
     typename... Dependencies_T,
     bool is_noexcept_T,
     auto (*func_T)(Dependencies_T...) noexcept(is_noexcept_T)->Entry_T>
-struct DummyBuilder<func_T> : EntryBuilderBase {
+struct DummyBuilder<func_T> {
+    using BuilderConcept = EntryBuilderTag;
+
     [[nodiscard]]
     static auto build(Dependencies_T... dependencies) -> Entry_T
     {

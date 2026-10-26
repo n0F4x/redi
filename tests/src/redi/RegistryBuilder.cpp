@@ -3,11 +3,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-import redi.BuildableEntryBuilder;
 import redi.BuildDirector;
+import redi.BuiltEntryBuilderTag;
 import redi.CyclicDependencyDetected;
+import redi.entry_builder_c;
 import redi.entry_c;
-import redi.EntryBuilderBase;
+import redi.EntryBuilderTag;
 import redi.EntryTraits;
 import redi.Registry;
 import redi.RegistryBuilder;
@@ -22,18 +23,21 @@ const std::string type_name{ util::name_of<RegistryBuilder>() };
 
 template <typename Builder_T>
 struct BuilderBuildDescriber {
-    constexpr static auto operator()(BuildDirector<Builder_T>& build_director) -> void
+    friend auto describe_build(BuildDirector<Builder_T>& build_director) -> void
     {
         build_director.template use_function<Builder_T::create>();
     }
 };
 
-struct BuildableEntry {};
+struct BuiltEntry {};
 
 struct ConfigurationEntry {};
 
-struct SelfBuildDependentEntry : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct SelfBuildDependentEntry : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(SelfBuildDependentEntry&) noexcept
@@ -44,8 +48,11 @@ struct SelfBuildDependentEntry : BuildableEntry {
     };
 };
 
-struct SelfCreateDependentEntry : BuildableEntry {
-    struct Builder : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
+struct SelfCreateDependentEntry : BuiltEntry {
+    struct Builder : BuilderBuildDescriber<Builder> {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = BuiltEntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto create(Builder&) noexcept -> Builder
@@ -62,8 +69,11 @@ struct SelfCreateDependentEntry : BuildableEntry {
     };
 };
 
-struct OptionalSelfBuildDependentEntry : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct OptionalSelfBuildDependentEntry : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(
@@ -75,8 +85,11 @@ struct OptionalSelfBuildDependentEntry : BuildableEntry {
     };
 };
 
-struct OptionalSelfCreateDependentEntry : BuildableEntry {
-    struct Builder : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
+struct OptionalSelfCreateDependentEntry : BuiltEntry {
+    struct Builder : BuilderBuildDescriber<Builder> {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = BuiltEntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto create(util::OptionalRef<Builder>) noexcept -> Builder
@@ -96,8 +109,11 @@ struct OptionalSelfCreateDependentEntry : BuildableEntry {
 struct EntryCyclicBuildEntryA;
 struct EntryCyclicBuildEntryB;
 
-struct EntryCyclicBuildEntryA : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct EntryCyclicBuildEntryA : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(EntryCyclicBuildEntryB&) noexcept
@@ -108,8 +124,11 @@ struct EntryCyclicBuildEntryA : BuildableEntry {
     };
 };
 
-struct EntryCyclicBuildEntryB : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct EntryCyclicBuildEntryB : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(EntryCyclicBuildEntryA&) noexcept
@@ -120,16 +139,19 @@ struct EntryCyclicBuildEntryB : BuildableEntry {
     };
 };
 
-struct BuilderCyclicBuildEntryA : BuildableEntry {
+struct BuilderCyclicBuildEntryA : BuiltEntry {
     struct Builder;
 };
 
-struct BuilderCyclicBuildEntryB : BuildableEntry {
+struct BuilderCyclicBuildEntryB : BuiltEntry {
     struct Builder;
 };
 
-struct EntryAndBuilderCyclicBuildEntryA : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct EntryAndBuilderCyclicBuildEntryA : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build() noexcept -> EntryAndBuilderCyclicBuildEntryA
@@ -139,8 +161,11 @@ struct EntryAndBuilderCyclicBuildEntryA : BuildableEntry {
     };
 };
 
-struct EntryAndBuilderCyclicBuildEntryB : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct EntryAndBuilderCyclicBuildEntryB : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(
@@ -153,7 +178,10 @@ struct EntryAndBuilderCyclicBuildEntryB : BuildableEntry {
     };
 };
 
-struct BuilderCyclicBuildEntryA::Builder : EntryBuilderBase {
+struct BuilderCyclicBuildEntryA::Builder {
+    // ReSharper disable once CppTypeAliasNeverUsed
+    using BuilderConcept = EntryBuilderTag;
+
     // ReSharper disable once CppDeclaratorNeverUsed
     [[nodiscard]]
     constexpr static auto build(const BuilderCyclicBuildEntryB::Builder&) noexcept
@@ -163,7 +191,10 @@ struct BuilderCyclicBuildEntryA::Builder : EntryBuilderBase {
     }
 };
 
-struct BuilderCyclicBuildEntryB::Builder : EntryBuilderBase {
+struct BuilderCyclicBuildEntryB::Builder {
+    // ReSharper disable once CppTypeAliasNeverUsed
+    using BuilderConcept = EntryBuilderTag;
+
     // ReSharper disable once CppDeclaratorNeverUsed
     [[nodiscard]]
     constexpr static auto build(const BuilderCyclicBuildEntryA::Builder&) noexcept
@@ -173,16 +204,18 @@ struct BuilderCyclicBuildEntryB::Builder : EntryBuilderBase {
     }
 };
 
-struct CyclicCreateEntryA : BuildableEntry {
+struct CyclicCreateEntryA : BuiltEntry {
     struct Builder;
 };
 
-struct CyclicCreateEntryB : BuildableEntry {
+struct CyclicCreateEntryB : BuiltEntry {
     struct Builder;
 };
 
-struct CyclicCreateEntryA::Builder
-    : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
+struct CyclicCreateEntryA::Builder : BuilderBuildDescriber<Builder> {
+    // ReSharper disable once CppTypeAliasNeverUsed
+    using BuilderConcept = BuiltEntryBuilderTag;
+
     // ReSharper disable once CppDeclaratorNeverUsed
     [[nodiscard]]
     constexpr static auto create(CyclicCreateEntryB::Builder&) noexcept -> Builder
@@ -198,8 +231,10 @@ struct CyclicCreateEntryA::Builder
     }
 };
 
-struct CyclicCreateEntryB::Builder
-    : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
+struct CyclicCreateEntryB::Builder : BuilderBuildDescriber<Builder> {
+    // ReSharper disable once CppTypeAliasNeverUsed
+    using BuilderConcept = BuiltEntryBuilderTag;
+
     // ReSharper disable once CppDeclaratorNeverUsed
     [[nodiscard]]
     constexpr static auto create(CyclicCreateEntryA::Builder&) noexcept -> Builder
@@ -215,8 +250,11 @@ struct CyclicCreateEntryB::Builder
     }
 };
 
-struct ConflictingMixedDependenciesEntryA : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct ConflictingMixedDependenciesEntryA : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build() noexcept -> ConflictingMixedDependenciesEntryA
@@ -226,8 +264,11 @@ struct ConflictingMixedDependenciesEntryA : BuildableEntry {
     };
 };
 
-struct ConflictingMixedDependenciesEntryB : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct ConflictingMixedDependenciesEntryB : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build() noexcept -> ConflictingMixedDependenciesEntryB
@@ -237,8 +278,11 @@ struct ConflictingMixedDependenciesEntryB : BuildableEntry {
     };
 };
 
-struct ConflictingMixedDependenciesEntryC : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct ConflictingMixedDependenciesEntryC : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(
@@ -251,8 +295,11 @@ struct ConflictingMixedDependenciesEntryC : BuildableEntry {
     };
 };
 
-struct ConflictingMixedDependenciesEntryD : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct ConflictingMixedDependenciesEntryD : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(
@@ -267,10 +314,13 @@ struct ConflictingMixedDependenciesEntryD : BuildableEntry {
 
 struct EntryDependencyA {};
 
-struct EntryDependencyB : BuildableEntry {
+struct EntryDependencyB : BuiltEntry {
     constexpr explicit EntryDependencyB(EntryDependencyA&) noexcept {}
 
-    struct Builder : EntryBuilderBase {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(EntryDependencyA& a) noexcept -> EntryDependencyB
@@ -280,8 +330,11 @@ struct EntryDependencyB : BuildableEntry {
     };
 };
 
-struct EntryBuilderDependencyA : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct EntryBuilderDependencyA : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build() noexcept -> EntryBuilderDependencyA
@@ -291,14 +344,17 @@ struct EntryBuilderDependencyA : BuildableEntry {
     };
 };
 
-struct EntryBuilderDependencyB : BuildableEntry {
+struct EntryBuilderDependencyB : BuiltEntry {
     constexpr explicit EntryBuilderDependencyB(
         const EntryBuilderDependencyA::Builder&
     ) noexcept
     {
     }
 
-    struct Builder : EntryBuilderBase {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(
@@ -312,10 +368,13 @@ struct EntryBuilderDependencyB : BuildableEntry {
 
 struct BuilderEntryDependencyA : ConfigurationEntry {};
 
-struct BuilderEntryDependencyB : BuildableEntry {
+struct BuilderEntryDependencyB : BuiltEntry {
     constexpr explicit BuilderEntryDependencyB(BuilderEntryDependencyA&) noexcept {}
 
-    struct Builder : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
+    struct Builder : BuilderBuildDescriber<Builder> {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = BuiltEntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto create(BuilderEntryDependencyA& a) noexcept -> Builder
@@ -337,12 +396,15 @@ struct BuilderEntryDependencyB : BuildableEntry {
     };
 };
 
-struct DependencyInversionEntryA : BuildableEntry {
+struct DependencyInversionEntryA : BuiltEntry {
     struct Builder;
 };
 
-struct DependencyInversionEntryB : BuildableEntry {
-    struct Builder : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
+struct DependencyInversionEntryB : BuiltEntry {
+    struct Builder : BuilderBuildDescriber<Builder> {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = BuiltEntryBuilderTag;
+
         [[nodiscard]]
         constexpr static auto create(DependencyInversionEntryA::Builder&) noexcept
             -> Builder
@@ -360,7 +422,10 @@ struct DependencyInversionEntryB : BuildableEntry {
     };
 };
 
-struct DependencyInversionEntryA::Builder : EntryBuilderBase {
+struct DependencyInversionEntryA::Builder {
+    // ReSharper disable once CppTypeAliasNeverUsed
+    using BuilderConcept = EntryBuilderTag;
+
     // ReSharper disable once CppDeclaratorNeverUsed
     [[nodiscard]]
     constexpr static auto build(const DependencyInversionEntryB::Builder&) noexcept
@@ -370,8 +435,11 @@ struct DependencyInversionEntryA::Builder : EntryBuilderBase {
     }
 };
 
-struct EntryAndBuilderSharedDependencyEntryA : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct EntryAndBuilderSharedDependencyEntryA : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build() noexcept -> EntryAndBuilderSharedDependencyEntryA
@@ -381,8 +449,11 @@ struct EntryAndBuilderSharedDependencyEntryA : BuildableEntry {
     };
 };
 
-struct EntryAndBuilderSharedDependencyEntryB : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct EntryAndBuilderSharedDependencyEntryB : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(EntryAndBuilderSharedDependencyEntryA&) noexcept
@@ -393,8 +464,11 @@ struct EntryAndBuilderSharedDependencyEntryB : BuildableEntry {
     };
 };
 
-struct EntryAndBuilderSharedDependencyEntryC : BuildableEntry {
-    struct Builder : EntryBuilderBase {
+struct EntryAndBuilderSharedDependencyEntryC : BuiltEntry {
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto build(
@@ -408,7 +482,7 @@ struct EntryAndBuilderSharedDependencyEntryC : BuildableEntry {
 
 struct BuilderOptionalEntryDependencyA : ConfigurationEntry {};
 
-struct BuilderOptionalEntryDependencyB : BuildableEntry {
+struct BuilderOptionalEntryDependencyB : BuiltEntry {
     bool has_dependency;
 
     constexpr explicit BuilderOptionalEntryDependencyB(const bool has_dependency) noexcept
@@ -416,7 +490,10 @@ struct BuilderOptionalEntryDependencyB : BuildableEntry {
     {
     }
 
-    struct Builder : BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}> {
+    struct Builder : BuilderBuildDescriber<Builder> {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = BuiltEntryBuilderTag;
+
         // ReSharper disable once CppDeclaratorNeverUsed
         [[nodiscard]]
         constexpr static auto create(
@@ -445,7 +522,7 @@ struct BuilderOptionalEntryDependencyB : BuildableEntry {
 
 }   // namespace
 
-template <std::derived_from<BuildableEntry> Entry_T>
+template <std::derived_from<BuiltEntry> Entry_T>
     requires redi::entry_c<Entry_T>
 struct EntryTraits<Entry_T> {
     constexpr static auto describe_build(BuildDirector<Entry_T>& build_director) -> void

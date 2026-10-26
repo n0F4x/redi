@@ -2,17 +2,16 @@ export module redi;
 
 export import redi.util;
 
-export import redi.BuildableEntryBuilder;
-export import redi.BuildableEntryBuilderBase;
 export import redi.BuildDirector;
+export import redi.BuiltEntryBuilderTag;
 export import redi.configuration_entry_c;
 export import redi.CyclicDependencyDetected;
 export import redi.DependencyChainNode;
 export import redi.entry_builder_c;
 export import redi.entry_c;
-export import redi.EntryBuilderBase;
 export import redi.EntryBuilderContainer;
 export import redi.EntryBuilderFailedError;
+export import redi.EntryBuilderTag;
 export import redi.EntryInjectionContainer;
 export import redi.EntryTraits;
 export import redi.ErasedEntry;

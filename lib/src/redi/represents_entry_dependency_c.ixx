@@ -5,7 +5,6 @@ module;
 export module redi.represents_entry_dependency_c;
 
 import redi.entry_c;
-import redi.EntryBuilderBase;
 import redi.opted_into_entry_builder_concept_c;
 import redi.util.containers.OptionalRef;
 

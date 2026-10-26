@@ -12,17 +12,16 @@ target_sources(${PROJECT_NAME} PUBLIC
         BASE_DIRS ${PROJECT_SOURCE_DIR}/src
         FILES
         redi.cppm
-        BuildableEntryBuilder.ixx
-        BuildableEntryBuilderBase.ixx
         BuildDirector.ixx
+        BuiltEntryBuilderTag.ixx
         configuration_entry_c.ixx
         CyclicDependencyDetected.ixx
         DependencyChainNode.ixx
         entry_c.ixx
         entry_builder_c.ixx
-        EntryBuilderBase.ixx
         EntryBuilderContainer.ixx
         EntryBuilderFailedError.ixx
+        EntryBuilderTag.ixx
         EntryInjectionContainer.ixx
         EntryTraits.ixx
         ErasedEntry.ixx

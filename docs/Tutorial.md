@@ -61,9 +61,12 @@ struct redi::EntryTraits<Entry> {
 
 Some entries require more setup than others.
 Each entry type might decide to be built by a builder type.
+Builders opt in by declaring a `BuilderConcept` alias.
 
 ```c++
-struct EntryBuilder : redi::EntryBuilderBase {
+struct EntryBuilder {
+    using BuilderConcept = redi::EntryBuilderTag;
+
     auto build(OtherEntry& other_entry) -> Entry;
 };
 
@@ -79,7 +82,9 @@ struct redi::EntryTraits<Entry> {
 Entries can also depend on other builders, given that these builders are invoked later in the dependency graph.
 
 ```c++
-struct EntryBuilder : redi::EntryBuilderBase {
+struct EntryBuilder {
+    using BuilderConcept = redi::EntryBuilderTag;
+
     auto build(const OtherEntryBuilder& other_entry_builder) -> Entry;
 };
 ```
@@ -88,21 +93,22 @@ struct EntryBuilder : redi::EntryBuilderBase {
 
 Similar to entries, builders may also depend on other builders.
 
+Such builders opt in using `redi::BuiltEntryBuilderTag`, and describe their build using a hidden friend function.
+
 ```c++
-struct EntryBuilder;
+struct EntryBuilder {
+    using BuilderConcept = redi::BuiltEntryBuilderTag;
 
-auto describe_build(redi::BuildDirector<EntryBuilder>& director) -> void;
-
-struct EntryBuilder : redi::BuildableEntryBuilder<EntryBuilder, describe_build> {
     explicit EntryBuilder(OtherEntryBuilder& other_entry_builder);
     
     auto build() -> Entry;
-};
 
-auto describe_build(redi::BuildDirector<EntryBuilder>& director) -> void 
-{
-    director.use_dependencies<OtherEntryBuilder&>();   
-}
+private:
+    friend auto describe_build(redi::BuildDirector<EntryBuilder>& director) -> void 
+    {
+        director.use_dependencies<OtherEntryBuilder&>();   
+    }
+};
 ```
 
 Notice how `EntryBuilder`'s constructor takes a mutable reference to `OtherEntryBuilder`.

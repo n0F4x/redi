@@ -4,9 +4,9 @@
 
 import redi;
 
-struct BuildableEntry {};
+struct BuiltEntry {};
 
-template <std::derived_from<BuildableEntry> Entry_T>
+template <std::derived_from<BuiltEntry> Entry_T>
     requires redi::entry_c<Entry_T>
 struct redi::EntryTraits<Entry_T> {
     constexpr static auto describe_build(BuildDirector<Entry_T>& build_director) -> void
@@ -15,24 +15,17 @@ struct redi::EntryTraits<Entry_T> {
     }
 };
 
-template <typename EntryBuilder_T>
-struct BuilderBuildDescriber {
-    constexpr static auto operator()(redi::BuildDirector<EntryBuilder_T>& build_director)
-        -> void
-    {
-        build_director.template use_function<EntryBuilder_T::create>();
-    }
-};
-
 struct GraphicsSystemIntegration {};
 
-struct WindowSystem : BuildableEntry {
+struct WindowSystem : BuiltEntry {
     struct Builder;
 
     GraphicsSystemIntegration* graphics_system{};
 };
 
-struct WindowSystem::Builder : redi::EntryBuilderBase {
+struct WindowSystem::Builder {
+    using BuilderConcept = redi::EntryBuilderTag;
+
     bool graphics_support_requested = false;
 
     auto build(
@@ -47,16 +40,16 @@ struct WindowSystem::Builder : redi::EntryBuilderBase {
     }
 };
 
-struct RenderSystem : BuildableEntry {
+struct RenderSystem : BuiltEntry {
     struct Builder;
 
     GraphicsSystemIntegration& graphics_system;
     WindowSystem*              window_system{};
 };
 
-struct RenderSystem::Builder
-    : redi::BuildableEntryBuilder<Builder, BuilderBuildDescriber<Builder>{}>   //
-{
+struct RenderSystem::Builder {
+    using BuilderConcept = redi::BuiltEntryBuilderTag;
+
     static auto create(
         const redi::util::OptionalRef<WindowSystem::Builder> window_builder
     ) -> Builder
@@ -78,6 +71,12 @@ struct RenderSystem::Builder
             .graphics_system = graphics_system_integration,
             .window_system   = window_system.has_value() ? &*window_system : nullptr,
         };
+    }
+
+private:
+    friend auto describe_build(redi::BuildDirector<Builder>& build_director) -> void
+    {
+        build_director.use_function<create>();
     }
 };
 

@@ -4,12 +4,14 @@ module;
 
 export module redi.opted_into_built_entry_builder_concept_c;
 
-import redi.BuildableEntryBuilderBase;
+import redi.BuiltEntryBuilderTag;
+import redi.opted_into_entry_builder_concept_c;
 
 namespace redi {
 
 export template <typename T>
 concept opted_into_built_entry_builder_concept_c
-    = std::derived_from<T, internal::BuildableEntryBuilderBase>;
+    = opted_into_entry_builder_concept_c<T>
+   && std::derived_from<typename T::BuilderConcept, BuiltEntryBuilderTag>;
 
 }   // namespace redi
