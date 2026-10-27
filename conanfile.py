@@ -86,11 +86,6 @@ class RediRecipe(ConanFile):
                     f"Clang versions below {minimum_supported_clang_version} are not supported"
                 )
 
-        if bool(self.conf.get(f"user.{self.name}:debug", default=False)) and not self._dev:
-            raise ConanInvalidConfiguration(
-                f"'user.{self.name}:debug' requires 'user.{self.name}:dev'"
-            )
-
         if bool(self.conf.get(f"user.{self.name}:enable_tests", default=False)) and not self._dev:
             raise ConanInvalidConfiguration(
                 f"'user.{self.name}:enable_tests' requires 'user.{self.name}:dev'"

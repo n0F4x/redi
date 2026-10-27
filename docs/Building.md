@@ -94,12 +94,12 @@ user.redi:<variable_name>=<value>
 
 The following variables/toggles are used by the project:
 
+* `debug=True` - Enables extra functionalities useful for debugging.
+
 * `dev=True`- Tells the package to configure itself for development.
     This also enables the CMakeLists.txt found in the root directory.
     All other options below are dependent on this.
     When `dev` is not set to `True`, the rest of the development options won't have an effect.
-  
-* `debug=True` - Enables extra functionalities useful for debugging.
 
 * `enable_tests=True` - Enables building the tests.
     This flag will also define the `REDI_TEST` macro, which makes our contract violation handlers throw a custom exception (that the tests can catch) instead of printing a nice error message and stopping the debugger / terminating.
@@ -108,7 +108,7 @@ The following variables/toggles are used by the project:
 
 ### Project local Conan profile
 
-You can place your Conan profile file inside the project directory (e.g. _./.conan2/profiles/customprofile_).
+You can place your Conan profile file inside the project directory (e.g. _./.conan/profiles/customprofile_).
 Use the relative path to your profile when executing Conan commands.
 
 ### CLion set toolchain
