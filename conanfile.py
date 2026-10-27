@@ -140,6 +140,9 @@ class RediRecipe(ConanFile):
         cmake.install()
 
     def package_info(self):
+        if self._dev:
+            raise ConanException(f"'user.{self.name}:dev' builds cannot be consumed")
+
         self.cpp_info.set_property("cmake_file_name", "redi")
         self.cpp_info.set_property("cmake_target_name", "redi::redi")
 
