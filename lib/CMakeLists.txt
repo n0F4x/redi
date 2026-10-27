@@ -60,3 +60,9 @@ install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
+
+export(EXPORT ${PROJECT_NAME}Targets
+        FILE ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Targets.cmake
+        NAMESPACE ${PROJECT_NAME}::
+        CXX_MODULES_DIRECTORY cxx-modules
+)

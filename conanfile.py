@@ -106,6 +106,9 @@ class RediRecipe(ConanFile):
     def layout(self):
         cmake_layout(self)
 
+        # Editable mode: consumers find the CMake config exported into the build tree (see lib/CMakeLists.txt)
+        self.cpp.build.builddirs = ["."]
+
     def generate(self):
         # CMakeDeps
         deps = CMakeDeps(self)
