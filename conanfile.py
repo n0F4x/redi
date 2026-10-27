@@ -97,7 +97,7 @@ class RediRecipe(ConanFile):
             )
 
     def build_requirements(self):
-        self.tool_requires("cmake/[>=4.3]")
+        self.tool_requires("cmake/[>=4.4]")
 
     def requirements(self):
         if self._enable_tests:

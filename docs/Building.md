@@ -41,7 +41,7 @@ PATH+=(path)C:/Program Files/LLVM/bin
 PATH+=(path)C:/Program Files/Ninja
 
 [platform_tool_requires]
-cmake/4.3
+cmake/4.4
 ```
 
 #### Example Conan profile for MSYS2 (Linux is very similar):
@@ -72,7 +72,7 @@ PATH+=(path)C:/msys64/clang64/bin
 PATH+=(path)C:/msys64/clang64/bin
 
 [platform_tool_requires]
-cmake/4.3
+cmake/4.4
 ```
 
 ### Install the dependencies

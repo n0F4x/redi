@@ -9,6 +9,9 @@ class RediTest(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "CMakeDeps", "CMakeToolchain"
 
+    def build_requirements(self):
+        self.tool_requires("cmake/[>=4.4]")
+
     def requirements(self):
         self.requires(self.tested_reference_str)
 
