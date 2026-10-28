@@ -22,6 +22,7 @@ target_sources(${PROJECT_NAME} PUBLIC
         any_cast.ixx
         contracts.ixx
         for_each.ixx
+        Lazy.ixx
         reflection.ixx
         ScopeFail.ixx
         ScopeSuccess.ixx

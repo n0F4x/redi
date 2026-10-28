@@ -3,6 +3,7 @@ module;
 #include <algorithm>
 #include <concepts>
 #include <cstdint>
+#include <memory>
 #include <memory_resource>
 #include <optional>
 #include <span>
@@ -22,6 +23,7 @@ import redi.util.containers.OptionalRef;
 import redi.util.containers.MoveOnlyFunction;
 import redi.util.contracts;
 import redi.util.for_each;
+import redi.util.Lazy;
 import redi.util.reflection;
 import redi.util.ScopeFail;
 import redi.util.type_traits.arguments_of;
@@ -65,8 +67,9 @@ public:
     auto at(this Self_T&) -> util::const_like_t<Builder_T, Self_T>&;
 
 
-    template <typename Builder_T>
-    auto insert(Builder_T&& builder) -> void;
+    template <typename Builder_T, typename... Args_T>
+        requires std::constructible_from<Builder_T, Args_T&&...>
+    auto emplace(Args_T&&... args) -> void;
 
     template <typename Builder_T, typename... Args_T>
         requires std::constructible_from<Builder_T, Args_T&&...>
@@ -156,17 +159,76 @@ auto fetch_dependency(EntryBuilderContainer& builders, Registry& registry) -> De
 
 template <typename Builder_T>
 struct ErasedEntryBuilderLambda {
+    template <typename T>
+    [[nodiscard]]
+    constexpr static auto maybe_ref(T& ref) -> std::reference_wrapper<T>
+    {
+        return std::ref(ref);
+    }
+
+    template <typename T>
+        requires(!std::is_lvalue_reference_v<T>)
+    [[nodiscard]]
+    constexpr static auto maybe_ref(T&& value) -> T&&
+    {
+        return std::forward<T>(value);
+    }
+
+    template <typename T>
+    [[nodiscard]]
+    constexpr static auto unwrap_ref(T&& value) -> T&&
+    {
+        return std::forward<T>(value);
+    }
+
+    template <typename T>
+    [[nodiscard]]
+    constexpr static auto unwrap_ref(std::reference_wrapper<T> wrapper) -> T&
+    {
+        return wrapper.get();
+    }
+
     Builder_T builder;
 
     auto operator()(EntryBuilderContainer& builders, Registry& registry) && -> void
     {
+        using Entry = util::result_of_t<decltype(&Builder_T::build)>;
+
+        /*
+         * TODO: figure out a good strategy for building allocator-aware immovable entries
+         */
+        static_assert(
+            !std::uses_allocator_v<Entry, Registry::allocator_type>
+                || std::constructible_from<
+                    Entry,
+                    std::allocator_arg_t,
+                    const Registry::allocator_type&,
+                    Entry&&>
+                || std::constructible_from<Entry, Entry&&, const Registry::allocator_type&>,
+            "immovable allocator-aware entries are not supported"
+        );
+
         [this,
          &builders,
          &registry]<typename... Dependencies_T>(util::TypeList<Dependencies_T...>) -> void
         {
-            registry.insert(
-                std::move(builder)
-                    .build(fetch_dependency<Dependencies_T>(builders, registry)...)
+            /*
+             * Lazily construct the entry in place to support immovable entries
+             */
+            registry.emplace<Entry>(
+                util::Lazy{
+                    [this,
+                     ... dependencies = maybe_ref(
+                         fetch_dependency<Dependencies_T>(builders, registry)
+                     )] mutable -> Entry
+                    {
+                        return std::move(builder).build(
+                            unwrap_ref(
+                                std::forward<decltype(dependencies)>(dependencies)
+                            )...   //
+                        );
+                    },
+                }   //
             );
         }(util::arguments_of_t<decltype(&Builder_T::build)>{});
     }
@@ -216,12 +278,12 @@ auto EntryBuilderContainer::at(this Self_T& self)
 #pragma clang diagnostic pop
 }
 
-template <typename Builder_T>
-auto EntryBuilderContainer::insert(Builder_T&& builder) -> void
+template <typename Builder_T, typename... Args_T>
+    requires std::constructible_from<Builder_T, Args_T&&...>
+auto EntryBuilderContainer::emplace(Args_T&&... args) -> void
 {
     [[maybe_unused]]
-    const bool success
-        = try_emplace<std::remove_cvref_t<Builder_T>>(std::forward<Builder_T>(builder));
+    const bool success = try_emplace<Builder_T>(std::forward<Args_T>(args)...);
     PRECOND(success);
 }
 

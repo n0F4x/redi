@@ -21,6 +21,7 @@ import redi.util.concepts.function;
 import redi.util.concepts.function_pointer;
 import redi.util.containers.MoveOnlyFunction;
 import redi.util.containers.OptionalRef;
+import redi.util.Lazy;
 import redi.util.reflection;
 import redi.util.ScopeFail;
 import redi.util.type_traits.arguments_of;
@@ -97,6 +98,35 @@ namespace redi {
 
 template <auto injection_T>
 struct ErasedEntryInjectionLambda {
+    template <typename T>
+    [[nodiscard]]
+    constexpr static auto maybe_ref(T& ref) -> std::reference_wrapper<T>
+    {
+        return std::ref(ref);
+    }
+
+    template <typename T>
+        requires(!std::is_lvalue_reference_v<T>)
+    [[nodiscard]]
+    constexpr static auto maybe_ref(T&& value) -> T&&
+    {
+        return std::forward<T>(value);
+    }
+
+    template <typename T>
+    [[nodiscard]]
+    constexpr static auto unwrap_ref(T&& value) -> T&&
+    {
+        return std::forward<T>(value);
+    }
+
+    template <typename T>
+    [[nodiscard]]
+    constexpr static auto unwrap_ref(std::reference_wrapper<T> wrapper) -> T&
+    {
+        return wrapper.get();
+    }
+
     static auto operator()(EntryBuilderContainer& builders, Registry& registry) -> void
     {
         helper(injection_T, builders, registry);
@@ -109,11 +139,21 @@ struct ErasedEntryInjectionLambda {
         Registry&              registry
     ) -> void
     {
-        builders.insert(
-            std::invoke(
-                injection_T,
-                fetch_dependency<Dependencies_T>(builders, registry)...
-            )
+        /*
+         * Lazily construct the builder in place to support immovable builders
+         */
+        builders.emplace<Builder_T>(
+            util::Lazy{
+                [... dependencies = maybe_ref(
+                     fetch_dependency<Dependencies_T>(builders, registry)
+                 )] mutable -> Builder_T
+                {
+                    return std::invoke(
+                        injection_T,
+                        unwrap_ref(std::forward<decltype(dependencies)>(dependencies))...
+                    );
+                },
+            }   //
         );
     }
 
@@ -201,8 +241,9 @@ auto EntryInjectionContainer::try_insert() -> bool
     [this]<typename... Dependencies_T>(util::TypeList<Dependencies_T...>) -> void
     {
         m_dependency_hashes.emplace_back(
-            std::initializer_list{
-                util::hash_u64<strip_dependency_t<Dependencies_T>>()... }
+            std::initializer_list<uint64_t>{
+                util::hash_u64<strip_dependency_t<Dependencies_T>>()...,
+            }
         );
     }(util::arguments_of_t<decltype(injection_T)>{});
     m_dependent_builder_hashes.emplace_back();

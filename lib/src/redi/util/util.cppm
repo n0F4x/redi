@@ -8,6 +8,7 @@ export import redi.util.type_traits;
 export import redi.util.any_cast;
 export import redi.util.contracts;
 export import redi.util.for_each;
+export import redi.util.Lazy;
 export import redi.util.reflection;
 export import redi.util.ScopeFail;
 export import redi.util.ScopeSuccess;

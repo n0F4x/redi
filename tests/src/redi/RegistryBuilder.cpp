@@ -1,5 +1,8 @@
+#include <concepts>
 #include <functional>
 #include <memory_resource>
+#include <string>
+#include <utility>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -520,6 +523,110 @@ struct BuilderOptionalEntryDependencyB : BuiltEntry {
     };
 };
 
+struct ImmovableEntryDependency {};
+
+struct ImmovableBuiltEntry : BuiltEntry {
+    ImmovableEntryDependency& dependency;
+
+    constexpr explicit ImmovableBuiltEntry(ImmovableEntryDependency& dependency) noexcept
+        : dependency{ dependency }
+    {
+    }
+
+    ImmovableBuiltEntry(const ImmovableBuiltEntry&) = delete;
+    ImmovableBuiltEntry(ImmovableBuiltEntry&&)      = delete;
+
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        constexpr static auto build(ImmovableEntryDependency& dependency) noexcept
+            -> ImmovableBuiltEntry
+        {
+            return ImmovableBuiltEntry{ dependency };
+        }
+    };
+};
+
+struct ImmovableDependenciesEntry {
+    ImmovableEntryDependency& dependency;
+
+    constexpr explicit ImmovableDependenciesEntry(
+        ImmovableEntryDependency& dependency
+    ) noexcept
+        : dependency{ dependency }
+    {
+    }
+
+    ImmovableDependenciesEntry(const ImmovableDependenciesEntry&) = delete;
+    ImmovableDependenciesEntry(ImmovableDependenciesEntry&&)      = delete;
+};
+
+struct ImmovableBuilderEntry : BuiltEntry {
+    struct Builder : BuilderBuildDescriber<Builder> {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = BuiltEntryBuilderTag;
+
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        constexpr static auto create() noexcept -> Builder
+        {
+            return Builder{};
+        }
+
+        constexpr Builder() noexcept = default;
+
+        Builder(const Builder&) = delete;
+        Builder(Builder&&)      = delete;
+
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        constexpr static auto build() noexcept -> ImmovableBuilderEntry
+        {
+            return ImmovableBuilderEntry{};
+        }
+    };
+};
+
+struct AllocatorAwareBuiltEntry : BuiltEntry {
+    using allocator_type = std::pmr::polymorphic_allocator<>;
+
+    struct Builder {
+        // ReSharper disable once CppTypeAliasNeverUsed
+        using BuilderConcept = EntryBuilderTag;
+
+        // ReSharper disable once CppDeclaratorNeverUsed
+        [[nodiscard]]
+        static auto build() -> AllocatorAwareBuiltEntry
+        {
+            return AllocatorAwareBuiltEntry{};
+        }
+    };
+
+    explicit AllocatorAwareBuiltEntry(const allocator_type& allocator = {})
+        : m_allocator{ allocator }
+    {
+    }
+
+    AllocatorAwareBuiltEntry(AllocatorAwareBuiltEntry&&) noexcept = default;
+
+    AllocatorAwareBuiltEntry(AllocatorAwareBuiltEntry&&, const allocator_type& allocator)
+        : m_allocator{ allocator }
+    {
+    }
+
+    [[nodiscard]]
+    auto get_allocator() const noexcept -> allocator_type
+    {
+        return m_allocator;
+    }
+
+private:
+    allocator_type m_allocator;
+};
+
 }   // namespace
 
 template <std::derived_from<BuiltEntry> Entry_T>
@@ -535,6 +642,16 @@ template <std::derived_from<ConfigurationEntry> Entry_T>
     requires redi::entry_c<Entry_T>
 struct EntryTraits<Entry_T> {
     constexpr static bool is_configuration_entry{ true };
+};
+
+template <>
+struct EntryTraits<ImmovableDependenciesEntry> {
+    constexpr static auto describe_build(
+        BuildDirector<ImmovableDependenciesEntry>& build_director
+    ) -> void
+    {
+        build_director.use_dependencies<ImmovableEntryDependency&>();
+    }
 };
 
 TEST_CASE(type_name)
@@ -857,6 +974,60 @@ TEST_CASE(type_name)
             REQUIRE(registry.contains<EntryAndBuilderSharedDependencyEntryA>());
             REQUIRE(registry.contains<EntryAndBuilderSharedDependencyEntryC>());
         }
+    }
+
+    SECTION("immovable entries")
+    {
+        SECTION("built by a builder")
+        {
+            RegistryBuilder registry_builder;
+            registry_builder.register_entry<ImmovableBuiltEntry>();
+            Registry registry
+                = std::move(registry_builder).build(transient_memory_resource);
+
+            REQUIRE(
+                &registry.at<ImmovableBuiltEntry>().dependency
+                == &registry.at<ImmovableEntryDependency>()
+            );
+        }
+
+        SECTION("built from dependencies")
+        {
+            RegistryBuilder registry_builder;
+            registry_builder.register_entry<ImmovableDependenciesEntry>();
+            Registry registry
+                = std::move(registry_builder).build(transient_memory_resource);
+
+            REQUIRE(
+                &registry.at<ImmovableDependenciesEntry>().dependency
+                == &registry.at<ImmovableEntryDependency>()
+            );
+        }
+    }
+
+    SECTION("immovable built builder")
+    {
+        RegistryBuilder registry_builder;
+        registry_builder.register_entry<ImmovableBuilderEntry>();
+        Registry registry = std::move(registry_builder).build(transient_memory_resource);
+
+        REQUIRE(registry.contains<ImmovableBuilderEntry>());
+    }
+
+    SECTION("allocator-aware entries use the allocator of the registry")
+    {
+        std::pmr::unsynchronized_pool_resource registry_memory_resource;
+
+        RegistryBuilder registry_builder{
+            RegistryBuilder::allocator_type{ &registry_memory_resource },
+        };
+        registry_builder.register_entry<AllocatorAwareBuiltEntry>();
+        Registry registry = std::move(registry_builder).build(transient_memory_resource);
+
+        REQUIRE(
+            registry.at<AllocatorAwareBuiltEntry>().get_allocator().resource()
+            == &registry_memory_resource
+        );
     }
 }
 
