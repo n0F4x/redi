@@ -27,7 +27,7 @@ public:
     explicit RegistryBuilder() = default;
     explicit RegistryBuilder(const allocator_type&);
 
-    template <configuration_entry_c... Entries_T>
+    template <decays_to_configuration_entry_c... Entries_T>
     explicit RegistryBuilder(
         std::allocator_arg_t,
         const allocator_type&,
@@ -60,7 +60,7 @@ private:
 
 namespace redi {
 
-template <configuration_entry_c... Entries_T>
+template <decays_to_configuration_entry_c... Entries_T>
 RegistryBuilder::RegistryBuilder(
     std::allocator_arg_t,
     const allocator_type& allocator,
