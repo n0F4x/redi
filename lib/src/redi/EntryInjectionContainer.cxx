@@ -24,7 +24,7 @@ EntryInjectionContainer::EntryInjectionContainer(
       m_builder_hashes{ std::move(other.m_builder_hashes), allocator },
       m_dependency_hashes{ std::move(other.m_dependency_hashes), allocator },
       m_dependent_builder_hashes{ std::move(other.m_dependent_builder_hashes), allocator }
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
       ,
       m_builder_names{ std::move(other.m_builder_names), allocator }
 #endif
@@ -36,7 +36,7 @@ EntryInjectionContainer::EntryInjectionContainer(const allocator_type& allocator
       m_builder_hashes{ allocator },
       m_dependency_hashes{ allocator },
       m_dependent_builder_hashes{ allocator }
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
       ,
       m_builder_names{ allocator }
 #endif
@@ -116,7 +116,7 @@ auto EntryInjectionContainer::sort() -> void
     }
 }
 
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
 auto EntryInjectionContainer::check_cyclic_dependencies(
     std::pmr::memory_resource& transient_memory_resource
 ) const -> bool
@@ -196,7 +196,7 @@ auto EntryInjectionContainer::bubble_up_dependencies_of(const std::size_t index)
             m_builder_hashes,
             m_dependency_hashes,
             m_dependent_builder_hashes
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
             ,
             m_builder_names
 #endif
@@ -246,7 +246,7 @@ auto EntryInjectionContainer::bubble_up_dependencies_of(const std::size_t index)
     }
 }
 
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
 auto EntryInjectionContainer::check_cyclic_dependencies(
     const std::size_t           injection_index,
     const DependencyChainNode&  dependency_chain,

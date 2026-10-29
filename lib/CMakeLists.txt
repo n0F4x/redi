@@ -5,6 +5,7 @@ project(redi VERSION 0.0.0)
 set(project_prefix REDI_)
 
 option(${project_prefix}DEBUG "Activate debug functionalities" OFF)
+option(${project_prefix}TEST "Activate test functionalities" OFF)
 
 
 add_library(${PROJECT_NAME})
@@ -22,6 +23,17 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 if (${project_prefix}DEBUG)
     target_compile_definitions(${PROJECT_NAME} PUBLIC
             ${project_prefix}DEBUG
+    )
+endif ()
+if (${project_prefix}TEST)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC
+            ${project_prefix}TEST
+    )
+endif ()
+
+if (${project_prefix}DEBUG OR ${project_prefix}TEST)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC
+            ${project_prefix}CONTRACTS
     )
 endif ()
 

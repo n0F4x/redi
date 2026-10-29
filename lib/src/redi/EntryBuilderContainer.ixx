@@ -88,7 +88,7 @@ private:
     std::pmr::vector<uint64_t>                   m_entry_hashes;
     std::pmr::vector<std::pmr::vector<uint64_t>> m_builder_dependency_entry_hashes;
     std::pmr::vector<std::pmr::vector<uint64_t>> m_entry_dependency_hashes;
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
     std::pmr::vector<std::pmr::string> m_entry_names;
     std::pmr::vector<std::pmr::string> m_builder_names;
 #endif
@@ -109,7 +109,7 @@ private:
         std::pmr::memory_resource& transient_memory_resource
     ) -> std::pmr::vector<std::size_t>;
 
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
     [[nodiscard]]
     auto check_cyclic_dependencies(
         const BuildOrderGraph&     graph,
@@ -313,7 +313,7 @@ auto EntryBuilderContainer::try_emplace(Args_T&&... args) -> bool
             rollback_emplace(m_entry_hashes);
             rollback_emplace(m_builder_dependency_entry_hashes);
             rollback_emplace(m_entry_dependency_hashes);
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
             rollback_emplace(m_entry_names);
             rollback_emplace(m_builder_names);
 #endif
@@ -359,7 +359,7 @@ auto EntryBuilderContainer::try_emplace(Args_T&&... args) -> bool
         }
     );
 
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
     m_entry_names.emplace_back(
         util::name_of<util::result_of_t<decltype(&Builder_T::build)>>()
     );

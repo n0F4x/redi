@@ -95,6 +95,9 @@ user.redi:<variable_name>=<value>
 The following variables/toggles are used by the project:
 
 * `debug=True` - Enables extra functionalities useful for debugging.
+    Defaults to `True` in a `dev` build.
+
+* `test=True` - Enables extra functionalities useful for testing.
 
 * `dev=True`- Tells the package to configure itself for development.
     This also enables the CMakeLists.txt found in the root directory.
@@ -102,7 +105,6 @@ The following variables/toggles are used by the project:
     When `dev` is not set to `True`, the rest of the development options won't have an effect.
 
 * `enable_tests=True` - Enables building the tests.
-    This flag will also define the `REDI_TEST` macro, which makes our contract violation handlers throw a custom exception (that the tests can catch) instead of printing a nice error message and stopping the debugger / terminating.
 
 * `enable_examples=True` - Enables building the examples.
 

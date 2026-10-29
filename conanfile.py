@@ -25,11 +25,13 @@ class RediRecipe(ConanFile):
         "shared": [True, False],
         "fPIC": [True, False],
         "debug": [True, False],
+        "test": [True, False],
     }
     default_options = {
         "shared": False,
         "fPIC": True,
         "debug": False,
+        "test": False,
     }
     implements = ["auto_shared_fpic"]
     exports = "LICENSE.md"
@@ -47,6 +49,11 @@ class RediRecipe(ConanFile):
     def _debug(self):
         return self.options.debug or (
                 self._dev and bool(self.conf.get(f"user.{self.name}:debug", default=True)))
+
+    @property
+    def _test(self):
+        return self.options.test or (
+                self._dev and bool(self.conf.get(f"user.{self.name}:test", default=False)))
 
     @property
     def _enable_tests(self):
@@ -118,6 +125,7 @@ class RediRecipe(ConanFile):
         tc = CMakeToolchain(self)
 
         tc.cache_variables[self.project_prefix + "DEBUG"] = self._debug
+        tc.cache_variables[self.project_prefix + "TEST"] = self._test
         if self._dev:
             tc.cache_variables[self.project_prefix + "ENABLE_TESTS"] = self._enable_tests
             tc.cache_variables[self.project_prefix + "ENABLE_EXAMPLES"] = self._enable_examples
@@ -156,6 +164,10 @@ class RediRecipe(ConanFile):
 
         if self.options.debug:
             self.cpp_info.defines.append(f"{self.project_prefix}DEBUG")
+        if self.options.test:
+            self.cpp_info.defines.append(f"{self.project_prefix}TEST")
+        if self.options.debug or self.options.test:
+            self.cpp_info.defines.append(f"{self.project_prefix}CONTRACTS")
 
         # TODO: remove these once Conan learns cxx modules
         self.cpp_info.set_property("cmake_find_mode", "none")

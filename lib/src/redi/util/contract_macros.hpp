@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
   #include <source_location>
 
   #define PRECOND_AS(condition, Exception_T, ...)                                \

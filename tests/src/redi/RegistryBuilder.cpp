@@ -660,7 +660,7 @@ TEST_CASE(type_name)
         std::pmr::get_default_resource()
     };
 
-#ifdef REDI_DEBUG
+#ifdef REDI_TEST
     SECTION("cyclic dependency detection")
     {
         SECTION("self")

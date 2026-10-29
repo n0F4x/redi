@@ -67,7 +67,7 @@ private:
     std::pmr::vector<uint64_t>                   m_builder_hashes;
     std::pmr::vector<std::pmr::vector<uint64_t>> m_dependency_hashes;
     std::pmr::vector<std::optional<std::pmr::vector<uint64_t>>> m_dependent_builder_hashes;
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
     std::pmr::vector<std::pmr::string> m_builder_names;
 #endif
 
@@ -229,7 +229,7 @@ auto EntryInjectionContainer::try_insert() -> bool
             rollback_emplace(m_builder_hashes);
             rollback_emplace(m_dependency_hashes);
             rollback_emplace(m_dependent_builder_hashes);
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
             rollback_emplace(m_builder_names);
 #endif
         },
@@ -248,7 +248,7 @@ auto EntryInjectionContainer::try_insert() -> bool
     }(util::arguments_of_t<decltype(injection_T)>{});
     m_dependent_builder_hashes.emplace_back();
 
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
     m_builder_names.emplace_back(util::name_of<Builder>());
 #endif
 

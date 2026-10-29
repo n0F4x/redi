@@ -34,7 +34,7 @@ EntryBuilderContainer::EntryBuilderContainer(
           allocator,
       },
       m_entry_dependency_hashes{ std::move(other.m_entry_dependency_hashes), allocator }
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
       ,
       m_entry_names{ std::move(other.m_entry_names), allocator },
       m_builder_names{ std::move(other.m_builder_names), allocator }
@@ -47,7 +47,7 @@ EntryBuilderContainer::EntryBuilderContainer(const allocator_type& allocator)
       m_entry_hashes{ allocator },
       m_builder_dependency_entry_hashes{ allocator },
       m_entry_dependency_hashes{ allocator }
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
       ,
       m_entry_names{ allocator },
       m_builder_names{ allocator }
@@ -221,7 +221,7 @@ auto EntryBuilderContainer::sort_topologically(
     return build_order;
 }
 
-#ifdef REDI_DEBUG
+#ifdef REDI_CONTRACTS
 auto EntryBuilderContainer::check_cyclic_dependencies(
     const BuildOrderGraph&     graph,
     std::pmr::memory_resource& transient_memory_resource

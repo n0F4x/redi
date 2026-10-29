@@ -46,10 +46,6 @@ endif ()
 add_subdirectory(lib)
 
 if (${project_prefix}ENABLE_TESTS)
-    target_compile_definitions(redi PUBLIC
-            ${project_prefix}TEST
-    )
-
     enable_testing()
     add_subdirectory(tests)
 endif ()
