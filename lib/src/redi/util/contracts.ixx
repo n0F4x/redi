@@ -32,6 +32,24 @@ public:
     {
     }
 
+    [[nodiscard]]
+    constexpr auto location() const noexcept -> const std::source_location&
+    {
+        return m_location;
+    }
+
+    [[nodiscard]]
+    constexpr auto condition_as_string() const noexcept -> std::string_view
+    {
+        return m_condition_as_string;
+    }
+
+    [[nodiscard]]
+    constexpr auto message() const noexcept -> std::string_view
+    {
+        return m_message;
+    }
+
     auto print() const -> void;
 
 private:
